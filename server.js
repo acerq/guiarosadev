@@ -385,7 +385,7 @@ function doObterExames(req, resp) {
 
 //-----------------------------------------------------------------------------------------//
 
-function doSolicitacao(req, resp) {
+function doAgendamento(req, resp) {
   guiaRosaApp.tempoCorrente = new Date();
 
   let soap = require("soap");
@@ -399,13 +399,13 @@ function doSolicitacao(req, resp) {
   let periodo = req.params.periodo;
   let faturar = req.params.faturar;
 
-  console.log("Solicitação - " + guiaRosaApp.login);
+  console.log("Agendamento - " + guiaRosaApp.login);
   if (guiaRosaApp.ehMedico) {
     solicitante = guiaRosaApp.login;
   } else {
     solicitante = "0000"; //TODO
   }
-  console.log("executando doSolicitacao");
+  console.log("executando doAgendamento");
   if (
     typeof executante === "undefined" ||
     typeof solicitante === "undefined" ||
@@ -453,9 +453,9 @@ function doSolicitacao(req, resp) {
     client.Importacaoguiarosaimportarincluirregistromobws(
       { Dados: dados },
       function(err, result) {
-        console.log("doSolicitacao webservice");
+        console.log("doAgendamento webservice");
         if (err) {
-          console.log("dodoSolicitacao Err -> ", err.response.body);
+          console.log("dados Agendamento Err -> ", err.response.body);
           resp.json(
             JSON.parse('{"erro" : "[Erro:#0009] Solicitação Inválida"}')
           );
@@ -465,7 +465,7 @@ function doSolicitacao(req, resp) {
         let resposta =
           result.ImportacaoguiarosaimportarincluirregistromobwsReturn.multiRef
             .$value;
-        console.log("doSolicitacao Resposta 1->" + resposta);
+        console.log("doAgendamento Resposta 1->" + resposta);
         resp.json(JSON.parse('{"mensagem":"Ok"}'));
       }
     );
@@ -487,8 +487,8 @@ async function doPgtoCC(req, resp) {
   let anoValidade = req.params.anoValidade;
   let cvv = req.params.cvv;
   let valor = req.params.valor;
-  
-  console.log("executando doPgtoCC" + nome );
+
+  console.log("executando doPgtoCC" + nome);
   if (
     typeof nome === "undefined" ||
     typeof cpf === "undefined" ||
@@ -511,48 +511,51 @@ async function doPgtoCC(req, resp) {
   let agora = new Date();
   let timeMillis = agora.getTime().toString();
   let id = guiaRosaApp.login + "_" + timeMillis;
-  
+
   const myHeaders = {
-      "Content-Type": "application/json",
-      "MerchantId"  : "6ad5e5f0-0c0b-4ccf-a5d2-edc0c8ab9b2c",
-      "MerchantKey" : "MCWSCKUOGYWXBGOWLUMXGKVHKTECEQSMQYCUWTAB"
-    };
-  
-  const myBody =    {
-    "MerchantOrderId": id,
-    "Customer":{
-      "Name"         : nome,
-      "Identity"     : cpf,
-      "IdentityType" : "CPF",
-      "Email"        : email,
+    "Content-Type": "application/json",
+    MerchantId: "6ad5e5f0-0c0b-4ccf-a5d2-edc0c8ab9b2c",
+    MerchantKey: "MCWSCKUOGYWXBGOWLUMXGKVHKTECEQSMQYCUWTAB"
+  };
+
+  const myBody = {
+    MerchantOrderId: id,
+    Customer: {
+      Name: nome,
+      Identity: cpf,
+      IdentityType: "CPF",
+      Email: email
     },
-    "Payment":{
-      "Provider"       : "Simulado",
-      "Type"           : "CreditCard",
-      "Amount"         : valor,
-      "Currency"       : "BRL",
-      "Country"        : "BRA",
-      "SoftDescriptor" : "GuiaRosa",
-      "Capture"        : true,
-      "Installments"   : 1,
-      "CreditCard":{
-         "CardNumber"     : numeroCartao,
-         "Holder"         : nomeCartao,
-         "ExpirationDate" : mesValidade + "/" + anoValidade,
-         "SecurityCode"   : cvv,
-         "Brand"          : bandeira
+    Payment: {
+      Provider: "Simulado",
+      Type: "CreditCard",
+      Amount: valor,
+      Currency: "BRL",
+      Country: "BRA",
+      SoftDescriptor: "GuiaRosa",
+      Capture: true,
+      Installments: 1,
+      CreditCard: {
+        CardNumber: numeroCartao,
+        Holder: nomeCartao,
+        ExpirationDate: mesValidade + "/" + anoValidade,
+        SecurityCode: cvv,
+        Brand: bandeira
       }
     }
   };
-      
+
   const requisicao = {
     method: "POST",
     headers: myHeaders,
     body: JSON.stringify(myBody)
   };
-  
+
   console.log("doPgtoCC --> " + JSON.stringify(requisicao));
-  const responseBraspag = await fetch("https://apisandbox.braspag.com.br/v2/sales/", requisicao);
+  const responseBraspag = await fetch(
+    "https://apisandbox.braspag.com.br/v2/sales/",
+    requisicao
+  );
   console.log("fetch doPgtoCC");
   const myJson = await responseBraspag.json();
   console.log("json doPgtoCC");
@@ -585,6 +588,87 @@ function doVerificarSenhaUsuarioCorrente(req, resp) {
     resp.json(JSON.parse('{"mensagem":"Ok"}'));
   }
 }
+
+//-----------------------------------------------------------------------------------------//
+
+async function doGerarConfirmacao(req, resp) {
+  guiaRosaApp.tempoCorrente = new Date();
+
+  let nome = req.params.nome;
+  let cpf = req.params.cpf;
+  let numeroCartao = req.params.numeroCartao;
+  let nomeCartao = req.params.nomeCartao;
+  let bandeira = req.params.bandeira;
+  let nomeExame = req.params.nomeExame;
+  let nomeExecutante = req.params.nomeExecutante;
+  let endereco = req.params.endereco;
+  let valor = req.params.valor;
+  let merchantOrderId = req.params.merchantOrderId;
+  let proofOfSale = req.params.proofOfSale;
+  let paymentId = req.params.paymentId;
+
+  console.log("executando doGerarConfirmação" + nome);
+  if (
+    typeof nome === "undefined" ||
+    typeof cpf === "undefined" ||
+    typeof numeroCartao === "undefined" ||
+    typeof nomeCartao === "undefined" ||
+    typeof bandeira === "undefined" ||
+    typeof nomeExame === "undefined" ||
+    typeof nomeExecutante === "undefined" ||
+    typeof endereco === "undefined" ||
+    typeof valor === "undefined" ||
+    typeof merchantOrderId === "undefined" ||
+    typeof proofOfSale === "undefined" ||
+    typeof paymentId === "undefined"
+  ) {
+    console.log("undefined 0012");
+    resp.json(JSON.parse('{"erro" : "[Erro:#0012] Solicitação Inválida"}'));
+    return;
+  }
+
+  console.log("parâmetros ok doGerarConfirmacao");
+
+  // npm install pdfkit
+  let PDFDocument = require("pdfkit");
+  let fs = require("fs");
+  let pdf = new PDFDocument({ bufferPages: true });
+  let buffers = [];
+  pdf.on("data", buffers.push.bind(buffers));
+  pdf.on("end", () => {
+    let pdfData = Buffer.concat(buffers);
+    resp.setHeader("Content-type", "application/pdf");
+    resp.setHeader("Content-Length", Buffer.byteLength(pdfData));
+    resp.setHeader("Content-disposition","attachment;filename=confirmacao_" + merchantOrderId + ".pdf"
+    );
+    resp.send(pdfData);
+    resp.end();
+  });
+
+  pdf.image('public/images/icons/android/android-launchericon-144-144.png', 100, 75, {fit: [100, 100]});
+  pdf
+    .font("public/fonts/SourceSansPro-SemiBold.ttf")
+    .fontSize(25)
+    .text("Agendamento de Exame", 210, 100);
+
+  pdf
+    .font("public/fonts/SourceSansPro-Regular.ttf")
+    .fontSize(14);
+
+  pdf.text("ID Guia Rosa: " + merchantOrderId + "\n");
+  pdf.text(nomeExame + "\n",100, 200);
+  pdf.text(nomeExecutante + "\n");
+  pdf.text(endereco + "\n");
+  let tamValor = valor.length;
+  valor = valor.substring(0,tamValor-2) + "," + valor.substring(tamValor-2);
+  pdf.text("Valor: R$ " + valor + "\n\n");
+  pdf.text("Agendado para " + nome + " (" + cpf + ")\n\n\n");
+  numeroCartao = numeroCartao.substring(0,4) + " " + numeroCartao.substring(4,6) + "XX XXXX XX" + numeroCartao.substring(14);
+  pdf.text("Pagamento feito com  cartão de crédito " + numeroCartao + " (" + bandeira + ")\n");
+  pdf.text("Número da Autorização: " +  proofOfSale + "\n")
+  pdf.text("Identificação do Pagamento: " + paymentId);
+  pdf.end();
+} 
 
 //-----------------------------------------------------------------------------------------//
 
@@ -633,15 +717,25 @@ function startServer() {
     doIncluirPaciente
   );
 
-  // Envio de Solicitação de Exame
+  // Envio de Solicitação de Agendamento de Exame
   app.get(
-    "/solicitacao/:executante/:solicitante/:paciente/:cpf/:exame/:data/:periodo/:faturar",
-    doSolicitacao
+    "/agendamento/:executante/:solicitante/:paciente/:cpf/:exame/:data/:periodo/:faturar",
+    doAgendamento
   );
 
   // Pagamento por cartão
-  app.get("/pgtocc/:cpf/:nome/:email/:numeroCartao/:nomeCartao/:bandeira/:mesValidade/:anoValidade/:cvv/:valor", doPgtoCC);
+  app.get(
+    "/pgtocc/:cpf/:nome/:email/:numeroCartao/:nomeCartao/:bandeira/:mesValidade/:anoValidade/:cvv/:valor",
+    doPgtoCC
+  );
 
+  // Gerar PDF de resposta
+  app.get(
+    "/gerarConfirmacao/:cpf/:nome/:numeroCartao/:nomeCartao/:bandeira/:nomeExame/:nomeExecutante/:endereco" +
+    "/:valor/:merchantOrderId/:proofOfSale/:paymentId",
+    doGerarConfirmacao
+  );
+  
   // Obter Locais
   app.get("/obterLocais/", doObterLocais);
 

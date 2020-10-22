@@ -40,7 +40,7 @@ export default class ViewSolicitacao {
     this.btPacientes.onclick = this.ctrl.chamarCadastrarPacientes;
     this.btConsultar.onclick = this.obterExames;
 
-    // Elementos da página de pagamento
+    //---- Elementos da página de pagamento
     this.tfNomeCartao = null;
     this.tfNumCartao = null;
     this.tfMesValidade = null;
@@ -49,7 +49,7 @@ export default class ViewSolicitacao {
     this.tfCvv = null;
     this.btOk = null;
     this.btCancelar = null;
-    //
+    //----
 
     this.codLocalSelecionado = null;
     this.codExecutanteSelecionado = null;
@@ -222,31 +222,23 @@ export default class ViewSolicitacao {
       );
       return;
     }
-    if (arrayExames == null || arrayExames.length == 0) {
-      fnTirarEspera();
-      alert(
-        "Nenhum exame encontrado\ncom os parâmetros informados.\nTente novamente."
-      );
-      return;
-    }
-
     new Promise((res, rej) => {
       arrayExames.sort(function(a, b) {
-        var keyA = a.exame;
-        var keyB = b.exame;
+        let keyA = a.exame;
+        let keyB = b.exame;
         // Compare the 2 dates
         if (keyA < keyB) return -1;
         if (keyA > keyB) return 1;
         return 0;
       });
 
-      //var retorno = "<option value='-1'>Selecione...</option>";
-      var retorno = "";
+      let retorno = "<option value='-1'>Selecione...</option>";
+      //let retorno = "";
       arrayExames.forEach((value, index, array) => {
         let codExecutante = value.id_executante;
         let codExame = value.cd_exame;
         let valor = value.valor;
-        var descricao =
+        let descricao =
           tiraEspacos(value.exame) +
           SEPARADOR +
           tiraEspacos(value.nome_executante) +
@@ -267,6 +259,7 @@ export default class ViewSolicitacao {
         if (index === array.length - 1) res(retorno);
       });
     }).then(retorno => {
+      
       const divExame = document.getElementById("divExame");
 
       divExame.style = "height:66px";
@@ -415,14 +408,21 @@ export default class ViewSolicitacao {
       return;
     }
 
+    let bandeira = self.cbBandeira.value;
+    if (bandeira == null || bandeira == "" ) {
+      fnTirarEspera();
+      alert("A Bandeira não foi selecionada.");
+      return;
+    }
+    
     let mesValidade = self.tfMesValidade.value;
     if (mesValidade == null || mesValidade == "") {
       fnTirarEspera();
       alert("O mês da validade do cartão não foi informado!");
       return;
     }
-    mesValidade = parseInt(mesValidade);
-    if (mesValidade == NaN || mesValidade < 1 || mesValidade > 12) {
+    let mesInt = parseInt(mesValidade);
+    if (mesInt == NaN || mesInt < 1 || mesInt > 12) {
       fnTirarEspera();
       alert("Valor inválido para o mês da validade do cartão!");
       return;
@@ -454,6 +454,11 @@ export default class ViewSolicitacao {
       return;
     }
     
+    let selecao = self.dadosExame.text.split(SEPARADOR);
+    let nomeExame = tiraEspacos(selecao[0]);
+    let nomeExecutante = tiraEspacos(selecao[1]);
+    let endereco = tiraEspacos(selecao[2]);
+
     self.ctrl.enviarPagamentoAgendamento(
       self.codExecutanteSelecionado,
       self.cpfPaciente.replace(/\.|-/g, ""),
@@ -463,11 +468,14 @@ export default class ViewSolicitacao {
       self.dtExame.value,
       numCartao,
       nomeCartao,
-      self.cbBandeira.value,
+      bandeira,
       mesValidade,
       anoValidade,
       cvv,
-      self.valorExameSelecionado.replace(/\./g, "")
+      nomeExame,
+      nomeExecutante,
+      endereco,
+      self.valorExameSelecionado.replace(/\./g, ""),
     );
     fnTirarEspera();
   }

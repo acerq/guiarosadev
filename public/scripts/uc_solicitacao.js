@@ -3,6 +3,8 @@
 import ViewSolicitacao from "./view_solicitacao.js";
 import DaoPaciente from "./dao_paciente.js";
 
+const download = new Function("blob", "download(blob)");
+
 export default class CtrlSolicitacao {
   constructor() {
     this.view = new ViewSolicitacao(this);
@@ -161,8 +163,16 @@ export default class CtrlSolicitacao {
     mesValidade,
     anoValidade,
     cvv,
+    nomeExame,
+    nomeExecutante,
+    endereco,
     valor
   ) {
+    this.view.colocarEspera();
+    let merchantOrderId = "";
+    let proofOfSale = "";
+    let paymentId = "";
+
     // Processando o pagamento
     let requisicao =
       "/pgtocc" +
@@ -190,34 +200,55 @@ export default class CtrlSolicitacao {
     let resposta = await response.json();
     if (!resposta) {
       console.log("Erro no pagamento");
+      this.view.tirarEspera();
       alert("Erro - pagamento não processado");
       return;
     }
-    if(resposta.Payment.ReasonCode == 0) {
-      let MerchantOrderId = resposta.MerchantOrderId;
-      let ProofOfSale = resposta.ProofOfSale;
-      let PaymentId = resposta.PaymentId;
-      alert("Pagamento Processado " + JSON.stringify(resposta));
-    }
-    else {
-      switch(resposta.Payment.ReasonCode) {
-        case 7 : alert("Pagamento Recusado: Não Autorizado\n\n" + JSON.stringify(resposta));
+    if (resposta.Payment.ReasonCode == 0) {
+      merchantOrderId = resposta.MerchantOrderId;
+      proofOfSale = resposta.Payment.ProofOfSale;
+      paymentId = resposta.Payment.PaymentId;
+    } else {
+      this.view.tirarEspera();
+      switch (resposta.Payment.ReasonCode) {
+        case 7:
+          alert("Pagamento Recusado: Não Autorizado");
           return;
-        case 13 : alert("Pagamento Recusado: Cartão Cancelado\n\n" + JSON.stringify(resposta));
+        case 12:
+          alert("Pagamento Recusado: Problemas com o Cartão de Crédito");
           return;
-        case 14 : alert("Pagamento Recusado: Cartão de Crédito Bloqueado\n\n" + JSON.stringify(resposta));
+        case 13:
+          alert("Pagamento Recusado: Cartão Cancelado");
           return;
-        case 15 : alert("Pagamento Recusado: Cartão Expirado\n\n" + JSON.stringify(resposta));
+        case 14:
+          alert("Pagamento Recusado: Cartão de Crédito Bloqueado");
           return;
-        case 22 : alert("Pagamento Recusado: Tempo Expirado\n\n" + JSON.stringify(resposta));
+        case 15:
+          alert("Pagamento Recusado: Cartão Expirado");
           return;
-        default : alert("Pagamento Recusado\n\n" + JSON.stringify(resposta));
+        case 4:
+        case 22:
+          alert("Pagamento não realizado: Tempo Expirado");
+          return;
+        default:
+          alert("Pagamento Recusado");
           return;
       }
     }
+    //
+    // Status: representa o status atual da transação.
+    // ReasonCode: representa o status da requisição.
+    // ProviderReturnCode: representa o código de resposta da transação da adquirente.
+    // Por exemplo, uma requisição de autorização poderá ter o retorno com ReasonCode=0 (Sucessfull),
+    // ou seja, a requisição finalizou com sucesso, porém, o Status poderá ser 0-Denied, por ter a
+    // transação não autorizada pela adquirente, por exemplo, ProviderReturnCode 57 (um dos códigos de negada da Cielo)
+    //
+    //
+
     // Agendamento
     requisicao =
-      "/solicitacao/" +
+      "/agendamento" +
+      "/" +
       codExecutante +
       "/" +
       this.usrApp.login +
@@ -234,19 +265,53 @@ export default class CtrlSolicitacao {
       "/" +
       "S";
     //faturar;
-
-    console.log("(app.js) Executando solicitacao");
+    console.log("(app.js) Executando agendamento");
     response = await fetch(requisicao);
     resposta = await response.json();
 
     if (!resposta) {
       console.log(" erro no agendamento");
+      this.view.tirarEspera();
       alert("Erro no agendamento do exame.");
       return;
     }
-    console.log("(app.js) renderSolicitacao -> ", response);
+    console.log("(app.js) renderAgendamento -> ", response);
     if (resposta.mensagem == "Ok") {
-      alert("Exame agendado com sucesso\n" + JSON.stringify(resposta));
+      this.view.tirarEspera();
+      alert("Exame agendado com sucesso!\nAguarde download de confirmação.");
+      this.view.colocarEspera();
+      requisicao =
+        "/gerarConfirmacao" +
+        "/" +
+        cpfPaciente +
+        "/" +
+        nomePaciente +
+        "/" +
+        numCartao +
+        "/" +
+        nomeCartao +
+        "/" +
+        bandeira +
+        "/" +
+        nomeExame +
+        "/" +
+        nomeExecutante +
+        "/" +
+        endereco +
+        "/" +
+        valor +
+        "/" +
+        merchantOrderId +
+        "/" +
+        proofOfSale +
+        "/" +
+        paymentId;
+
+      let response = await fetch(requisicao);
+      let blob = await response.blob();
+      await download(blob);
+      this.view.tirarEspera();
+      alert("Download de documento de confirmação realizado.");
       window.history.go(-1);
     } else {
       alert("Erro no agendamento\n" + JSON.stringify(resposta));
