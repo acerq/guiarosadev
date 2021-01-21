@@ -44,23 +44,34 @@
           <div>
             <input id="tfEmail" type="text" />
           </div>
-          <div class="rotulo" style="display:grid;grid-template-columns: 26% auto;">
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 25% 72%;">
             <div>Cep:</div>
-            <div>Logradouro:</div>
+            <div style="margin-left:3%">Logradouro:</div>
           </div>
-          <div>
-            <input id="tfCep" type="text" class="trinta" />
-            <input id="tfRua" type="text" class="setenta"/>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 25% 72%;">
+            <input id="tfCep" type="text" />
+            <input id="tfRua"  style="margin-left:3%" type="text" disabled/>
           </div>
-          <div class="rotulo" style="display:grid;grid-template-columns: 26% 26% auto;">
+
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 30% 67%">
             <div>Número:</div>
-            <div>Complem.:</div> 
-            <div>Bairro:</div>
+            <div style="margin-left:3%">Complemento:</div>
           </div>
-          <div>
-            <input id="tfNumero" type="text" class="trinta"  />
-            <input id="tfComplemento" type="text" class="trinta"  />
-            <input id="tfBairro" type="text" class="quarenta"  />
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns:30% 67%;">
+            <input id="tfNumero" type="text" />
+            <input id="tfComplemento" style="margin-left:3%" type="text" />
+          </div>
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 40% 37% 20%;">
+            <div>Bairro:</div>
+            <div style="margin-left:3%">Cidade:</div>
+            <div style="margin-left:10%">UF:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 40% 37% 20%">
+            <input id="tfBairro" type="text" disabled />
+            <input id="tfCidade" style="margin-left:3%" type="text" disabled/>
+            <input id="tfUf" style="margin-left:10%" type="text" disabled/>
           </div>
         </div>
         <div class="caixaBotoes">

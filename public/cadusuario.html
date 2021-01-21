@@ -27,11 +27,11 @@
     <main class="main">
       <div class="circle"></div>
 
-      <div id="divInstrucao" class="apresentacao_app">
+      <div id="divConteudo" class="apresentacao_app">
         <b>Efetue seu Cadastro</b><br />
       </div>
 
-      <div id="divLogin" class="caixaDialog">
+      <div id="divLogin" class="caixaDialog" >
         <div class="grade">
           <div class="rotulo">CPF:</div>
           <div>
@@ -49,24 +49,44 @@
           <div>
             <input id="tfEmail" type="text" />
           </div>
-          <div class="rotulo">Cep | Logradouro:</div>
-          <div>
-            <input id="tfCep" type="text" class="trinta" />
-            <input id="tfRua" type="text" class="setenta"/>
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 25% 72%;">
+            <div>Cep:</div>
+            <div style="margin-left:3%">Logradouro:</div>
           </div>
-          <div class="rotulo">Número | Complemento | Bairro</div>
-          <div>
-            <input id="tfNumero" type="text" class="trinta"  />
-            <input id="tfComplemento" type="text" class="trinta"  />
-            <input id="tfBairro" type="text" class="trinta"  />
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 25% 72%;">
+            <input id="tfCep" type="text" />
+            <input id="tfRua"  style="margin-left:3%" type="text" disabled/>
           </div>
-          <div class="rotulo">Senha:</div>
-          <div>
+
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 30% 67%">
+            <div>Número:</div>
+            <div style="margin-left:3%">Complemento:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns:30% 67%;">
+            <input id="tfNumero" type="text" />
+            <input id="tfComplemento" style="margin-left:3%" type="text" />
+          </div>
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 40% 37% 20%;">
+            <div>Bairro:</div>
+            <div style="margin-left:3%">Cidade:</div>
+            <div style="margin-left:10%">UF:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 40% 37% 20%">
+            <input id="tfBairro" type="text" disabled />
+            <input id="tfCidade" style="margin-left:3%" type="text" disabled/>
+            <input id="tfUf" style="margin-left:10%" type="text" disabled/>
+          </div>
+
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 48% 48%">
+            <div>Senha:</div>
+            <div style="margin-left:3%">Repita a Senha:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 48% 48%">
             <input id="tfSenha" type="password" />
-          </div>
-          <div class="rotulo">Repita a Senha:</div>
-          <div>
-            <input id="tfReplay" type="password" />
+            <input id="tfReplay" style="margin-left:3%" type="password" />
           </div>
         </div>
         <div class="caixaBotoes">
@@ -84,5 +104,6 @@
     </main>
     <footer class="footer"></footer>
     <script src="scripts/cadusuario.js"></script>
+    <script src="scripts/nav.js"></script>
   </body>
 </html>

@@ -1,4 +1,5 @@
 dependencies:
+  cookie-parser: 1.4.0
   express: 4.17.1
   express-http-to-https: 1.1.4
   node-fetch: 2.6.0
@@ -243,10 +244,25 @@ packages:
     dev: false
     resolution:
       integrity: sha512-4FJkXzKXEDB1snCFZlLP4gpC3JILicCpGbzG9f9G7tGqGCzETQ2hWPrcinA9oU4wtf2biUaEH5065UnMeR33oA==
+  /cookie-parser/1.4.0:
+    dependencies:
+      cookie: 0.2.2
+      cookie-signature: 1.0.6
+    dev: false
+    engines:
+      node: '>= 0.8.0'
+    resolution:
+      integrity: sha1-czI9Wn3jQQeMRGEJxiLS9wCBZO4=
   /cookie-signature/1.0.6:
     dev: false
     resolution:
       integrity: sha1-4wOogrNCzD7oylE6eZmXNNqzriw=
+  /cookie/0.2.2:
+    dev: false
+    engines:
+      node: '>= 0.6'
+    resolution:
+      integrity: sha1-V574vJstb36XWha/QWTVcudS5UA=
   /cookie/0.4.0:
     dev: false
     engines:
@@ -1609,6 +1625,7 @@ registry: 'https://registry.npmjs.org/'
 shrinkwrapMinorVersion: 9
 shrinkwrapVersion: 3
 specifiers:
+  cookie-parser: 1.4.0
   express: ^4.16.4
   express-http-to-https: ^1.1.4
   node-fetch: ^2.3.0

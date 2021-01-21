@@ -9,15 +9,22 @@ var store = null;
 var transacao = null;
 var usr = null;
 
-const divConteudo = document.getElementById("divConteudo");
 const divInstrucao = document.getElementById("divInstrucao");
+
 const tfCpf = document.getElementById("tfCpf");
 const tfNome = document.getElementById("tfNome");
 const tfSenha = document.getElementById("tfSenha");
 const tfReplay = document.getElementById("tfReplay");
 const tfCelular = document.getElementById("tfCelular");
 const tfEmail = document.getElementById("tfEmail");
-const tfEndereco = document.getElementById("tfEndereco");
+const tfRua = document.getElementById("tfRua");
+const tfNumero = document.getElementById("tfNumero");
+const tfComplemento = document.getElementById("tfComplemento");
+const tfBairro = document.getElementById("tfBairro");
+const tfCidade = document.getElementById("tfCidade");
+const tfUf = document.getElementById("tfUf");
+const tfCep = document.getElementById("tfCep");
+
 const btCancelar = document.getElementById("btCancelar");
 const btCriar = document.getElementById("btCriar");
 
@@ -27,7 +34,11 @@ var senha;
 var replay;
 var email;
 var celular;
-var endereco;
+var rua;
+var numero;
+var complemento;
+var bairro;
+var cep;
 
 var funcaoMD5 = new Function("a", "return md5(a)");
 
@@ -35,6 +46,7 @@ $(document).ready(function() {
   tirarEspera();
   $("#tfCpf").mask("999.999.999-99");
   $("#tfCelular").mask("(99) 9999-9999?9");
+  $("#tfCep").mask("99999-999");
 });
 
 //-----------------------------------------------------------------------------------------//
@@ -72,12 +84,9 @@ function validarCpf(strCpf) {
 
 function abrirDbApp() {
   // Verificações
-  console.log("(cadusuario.js) abrirDbApp iniciando...");
-
   requestDB = window.indexedDB.open("AppUsr", 1);
 
   requestDB.onupgradeneeded = event => {
-    console.log("(cadusuario.js) Criando IndexedDB AppUsr");
     db = event.target.result;
     store = db.createObjectStore("AppUsr", {
       autoIncrement: true
@@ -87,21 +96,22 @@ function abrirDbApp() {
 
   requestDB.onerror = event => {
     tirarEspera();
-    console.log("(cadusuario.js) Erro [AppUsr]: " + event.target.errorCode);
-    alert("(cadusuario.js) Erro [AppUsr]: " + event.target.errorCode);
+    alert("Erro [abrirBD]: " + event.target.errorCode);
   };
 
   requestDB.onsuccess = event => {
     tirarEspera();
-    console.log("(cadusuario.js) [AppUsr] Sucesso");
     db = event.target.result;
     senha = tfSenha.value;
     cpf = tfCpf.value;
     nome = tfNome.value;
     email = tfEmail.value;
     celular = tfCelular.value;
-    endereco = tfEndereco.value;
-
+    rua = tfRua.value;
+    numero = tfNumero.value;
+    complemento = tfComplemento.value;
+    bairro = tfBairro.value;
+    cep = tfCep.value;
     incluirDbApp();
   };
 }
@@ -110,11 +120,9 @@ function abrirDbApp() {
 
 function incluirDbApp() {
   transacao = db.transaction(["AppUsr"], "readwrite");
-  transacao.oncomplete = event => {
-    console.log("(cadusuario.js) [AppUsr] Sucesso");
-  };
+  transacao.oncomplete = event => {};
   transacao.onerror = event => {
-    console.log("(cadusuario.js) [AppUsr] Erro");
+    alert("Problemas de Conexão com o servidor: " + event.target.errorCode);
   };
   store = transacao.objectStore("AppUsr");
   var objectStoreRequest = store.clear();
@@ -126,7 +134,11 @@ function incluirDbApp() {
       nome: nome,
       email: email,
       celular: celular,
-      endereco: celular,
+      rua: rua,
+      numero: numero,
+      complemento: complemento,
+      bairro: bairro,
+      cep: cep,
       ehMedico: false
     });
     objectStoreRequest.onsuccess = function(event) {
@@ -137,14 +149,24 @@ function incluirDbApp() {
 
 //-----------------------------------------------------------------------------------------//
 
-function renderCriarUsuario(data) {}
+async function getEnderecoPeloCep(cep) {
+  colocarEspera();
+  let response = await fetch('/obterEnderecoPeloCep/' + cep);
+  let dados = await response.json();
+  if(dados.resultado == "1") {
+    tfRua.value = dados.tipo_logradouro + " " + dados.logradouro;
+    tfBairro.value = dados.bairro;
+    tfUf.value = dados.uf;
+    tfCidade.value = dados.cidade;
+  } else
+    alert("CEP Não Encontrado: " + cep);
+  tirarEspera();
+}
 
 //-----------------------------------------------------------------------------------------//
-
-function doIncluirPaciente() {
-  console.log("(cadusuario.js) Executando Incluir Paciente " + cpf);
-  return fetch(
-    "/incluirPaciente/" +
+async function doIncluirUsuarioPaciente() {
+  let response = await fetch(
+    "/incluirUsuarioPaciente/" +
       cpf.replace(/\.|-/g, "") +
       "/" +
       nome +
@@ -155,22 +177,22 @@ function doIncluirPaciente() {
       "/" +
       celular.replace(/\(|\)|\s|-/g, "") +
       "/" +
-      endereco
-  )
-    .then(response => {
-      console.log("(cadusuario.js) incluirPaciente response");
-      return response.json();
-    })
-    .catch(() => {
-      console.log("(cadusuario.js) incluirPaciente catch");
-      return null;
-    });
+      rua +
+      "/" +
+      numero +
+      "/" +
+      complemento +
+      "/" +
+      bairro +
+      "/" +
+      cep, { credentials : "include" }
+  );
+  return await response.json();
 }
 
 //-----------------------------------------------------------------------------------------//
 
 function doGuardarUsuarioCorrente() {
-  console.log("(cadusuario.js) Executando Guardar Usuário Corrente " + cpf);
   return fetch(
     "/guardarUsuarioCorrente/" +
       cpf +
@@ -183,14 +205,20 @@ function doGuardarUsuarioCorrente() {
       "/" +
       celular +
       "/" +
-      endereco
+      rua +
+      "/" +
+      numero +
+      "/" +
+      complemento +
+      "/" +
+      bairro +
+      "/" +
+      cep, { credentials : "include" }
   )
     .then(response => {
-      console.log("(cadusuario.js) doGuardarUsuarioCorrente response");
       return response.json();
     })
     .catch(() => {
-      console.log("(cadusuario.js) doGuardarUsuarioCorrente catch");
       return null;
     });
 }
@@ -207,8 +235,7 @@ function callbackCancelar() {
 
 //-----------------------------------------------------------------------------------------//
 
-function callbackCriar() {
-  console.log("(cadusuario.js) callbackCriar");
+async function callbackCriar() {
   // Verificando o Cpf
   cpf = tfCpf.value;
   if (cpf == null || cpf == "") {
@@ -264,30 +291,52 @@ function callbackCriar() {
   }
 
   // Verificando o endereço
-  endereco = tfEndereco.value;
-  if (endereco == null || endereco == "") {
-    alert("O endereço deve ser preenchido.");
-    return;
+  rua = tfRua.value;
+  if (rua == null || rua == "") {
+    alert("A rua do endereço deve ser preenchida.");
+    return false;
+  }
+
+  numero = tfNumero.value;
+  if (numero == null || numero == "") {
+    alert("O número do endereço deve ser preenchido.");
+    return false;
+  }
+
+  const padraoNum = /[0-9]/;
+  if (!padraoNum.test(numero)) {
+    alert("O número do endereço é inválido.");
+    return false;
+  }
+
+  complemento = tfComplemento.value;
+  if (complemento == null || complemento == "") {
+    complemento = "null";
+  }
+
+  bairro = tfBairro.value;
+  if (bairro == null || bairro == "") {
+    alert("O bairro deve ser preenchido.");
+    return false;
+  }
+
+  cep = tfCep.value;
+  if (cep == null || cep == "") {
+    alert("O CEP deve ser preenchido.");
+    return false;
   }
 
   colocarEspera();
 
   // Solicita ao server.js para que execute o WS para inclusão de paciente
-  doIncluirPaciente().then(retorno => {
-    console.log("(cadusuario.js) callbackCriar retorno", retorno);
-    if (retorno.hasOwnProperty("status")) {
-      if (retorno.status == "success") {
-        // Guarda os dados no banco local
-        abrirDbApp();
-        // Solicita ao server.js para guardar os dados do usuário
-        doGuardarUsuarioCorrente().then(retorno => {
-          console.log("(cadusuario.js) callbackCriar retorno", retorno);
-          renderCriarUsuario(retorno);
-        });
-      } else alert(retorno.msg);
-    } else alert(retorno.erro);
-    tirarEspera();
-  });
+  let retorno = await doIncluirUsuarioPaciente();
+  if (retorno.hasOwnProperty("session_id")) {
+    // Guarda os dados no banco local
+    abrirDbApp();
+  }  
+  else 
+    alert(retorno.erro);
+  tirarEspera();
 }
 
 //-----------------------------------------------------------------------------------------//
@@ -302,7 +351,9 @@ function tirarEspera() {
   $("div.circle").removeClass("wait");
 }
 
-// -----------------------------------------------------------------------------------------//btCancelar.addEventListener("click", callbackCancelar);
+// -----------------------------------------------------------------------------------------//
+
+btCancelar.addEventListener("click", callbackCancelar);
 btCriar.addEventListener("click", callbackCriar);
 btCancelar.addEventListener("click", callbackCancelar);
 
@@ -323,10 +374,25 @@ tfCelular.addEventListener("keyup", function(event) {
 });
 tfEmail.addEventListener("keyup", function(event) {
   if (event.keyCode === 13) {
-    tfEndereco.focus();
+    tfCep.focus();
   }
 });
-tfEmail.addEventListener("keyup", function(event) {
+tfCep.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    getEnderecoPeloCep(tfCep.value);
+    tfNumero.focus();
+  }
+});
+tfCep.addEventListener("blur", function(event) {
+    getEnderecoPeloCep(tfCep.value);
+    tfNumero.focus();
+});
+tfNumero.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+    tfComplemento.focus();
+  }
+});
+tfComplemento.addEventListener("keyup", function(event) {
   if (event.keyCode === 13) {
     tfSenha.focus();
   }

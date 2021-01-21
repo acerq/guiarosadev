@@ -79,7 +79,7 @@ function doPgtoCredito() {
       "/" +
       anoValidade +
       "/" +
-      cvv
+      cvv, { credentials : "include" }
   )
     .then(response => {
       console.log("(pgto.js) Pgto Crédito response");

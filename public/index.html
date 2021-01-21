@@ -1,62 +1,74 @@
 <!DOCTYPE html>
 <html lang="pt-br">
   <head>
-    <title>Guia Rosa App</title>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guia Rosa App</title>
     <meta name="guiarosaapp" content="Guia Rosa App" />
     <link rel="stylesheet" type="text/css" href="/styles/inline.css" />
+    <link rel="stylesheet" type="text/css" href="/styles/select2.css" />
     <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
-    <!-- Indicação do Manifest -->
     <link rel="manifest" href="/manifest.json" />
-    <!-- meta tags e ícones para iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="apple-mobile-web-app-title" content="Guia Rosa App" />
-    <link
-      rel="apple-touch-icon"
-      href="/images/icons/ios/ios-appicon-152-152.png"
-    />
-    <!-- Descrição -->
+    <link rel="apple-touch-icon" href="/images/icons/icon-152x152.png" />
     <meta name="description" content="Guia Rosa App" />
-    <!--  meta theme-color -->
     <meta name="theme-color" content="#2F3BA2" />
     <script src="scripts/jquery.js"></script>
-    <script src="scripts/jquery.maskedinput-1.4.1.pack.js"></script>
   </head>
   <body>
-    <header class="header">
-      <h1>Guia Rosa App</h1>
-    </header>
-    <main class="main" id="main">
-      <div class="circle"></div>
-      <div id="divInstrucao" class="apresentacao_app">
-        <b>Efetue seu Login</b><br />
-      </div>
-      <div id="divLogin" class="caixaDialog">
+    <header id="hdr" class="header">Guia Rosa App</header>
+    <main class="main">
+      <div id="menu"></div>
+
+      <div id="divConteudo" class="caixaDialog">
         <div class="grade">
-          <div class="rotulo" id="lbLogin">Login (Médico):</div>
-          <div><input id="tfLogin" type="text" /></div>
-          <div class="rotulo">Senha:</div>
-          <div><input id="tfSenha" type="password" /></div>
+          <div class="rotulo">
+            Local:
+          </div>
+          <div id="divLocal"></div>
+          <div class="rotulo">Data do Exame:</div>
+          <div>
+            <input type="date" id="dtExame" />
+          </div>
+          <div class="rotulo">Exame:</div>
+          <div id="divTfExame">
+            <input
+              id="tfExame"
+              style="width:75%"
+              type="text"
+              size="20"
+              placeholder="Digite parte do nome do exame"
+            />&nbsp;
+            <button id="btConsultar" style="height:20px">
+              Consultar
+            </button>
+          </div>
+          <div class="rotulo"></div>
+          <div id="divExame"></div>
         </div>
         <div class="caixaBotoes">
-          <div>
-            <button id="btOk">Ok</button><button id="btNovo">Nova Conta</button>
-          </div>
-          <div></div>
+          <button id="btSair">
+            Sair
+          </button>
+        </div>
+        <div id="logo"></div>
+      </div>
+      <div class="icone-container" onclick="window.location.href='login.html'">
+        <div class="icone">
+          <img src="images/icons/paciente.png" />
+          <div class="texto">Efetuar Login</div>
         </div>
       </div>
-      <div id="divConteudo" hidden class="caixaDialog"></div>
-      <div id="logo"></div>
     </main>
     <footer class="footer"></footer>
-
+    <script src="scripts/nav.js"></script>
+    <script>abrirApp();</script>
+    <script type="module" src="scripts/uc_solicitacao.js"></script>
     <script src="scripts/md5.min.js"></script>
-    <script src="scripts/index.js"></script>
-    <script>
-      initApp();
-    </script>
+    <script src="scripts/select2.js"></script>
+    <script src="scripts/download.js"></script>
   </body>
 </html>

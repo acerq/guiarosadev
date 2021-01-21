@@ -12,23 +12,39 @@ const FILES_TO_CACHE = [
   "/bdpaciente.html",
   "/burger.html",
   "/cadusuario.html",
+  "/icones_medico.html",
+  "/icones_paciente.html",
   "/index.html",
   "/inicio.html",
+  "/listas.html",
   "/login.html",
   "/menu_medico.html",
   "/menu_paciente.html",
+  "/menu_sem_usuario.html",
   "/offline.html",
+  "/pgto.html",
   "/solicitacao.html",
-  "/scripts/app.js",
   "/scripts/cadusuario.js",
   "/scripts/dao_paciente.js",
+  "/scripts/download.js",
   "/scripts/install.js",
   "/scripts/jquery.js",
   "/scripts/jquery.maskedinput-1.4.1.pack.js",
+  "/scripts/login.js",
+  "/scripts/md5.min.js",
+  "/scripts/nav.js",
+  "/scripts/pgto.js",
+  "/scripts/select2.js",
+  "/scripts/uc_paciente.js",
+  "/scripts/uc_solicitacao.js",
+  "/scripts/util.js",
+  "/scripts/view_paciente.js",
+  "/scripts/view_solicitacao.js",
+  "/styles/select2.css",
   "/styles/inline.css"
 ];
 
-self.addEventListener("install", evt => {
+self.addEventListener("install", evt =>  {
   console.log("[SW] Instalação");
   caches.keys().then(keyList => {
     return Promise.all(

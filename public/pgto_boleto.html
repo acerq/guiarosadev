@@ -1,0 +1,44 @@
+<div class="grade">
+  <div class="rotulo" id="divExame"></div>
+  <hr />
+  <div class="rotulo" id="divMensagem">
+    <center>Insira os Dados do Cartão</center>
+  </div>
+  <hr />
+  <div class="rotulo"></div>
+  <div class="rotulo">Nome no Cartão:</div>
+  <div>
+    <input id="tfNomeCartao" type="text" size="20" class="uppercase" />
+  </div>
+  <div class="rotulo">Número do Cartão:</div>
+  <div>
+    <input id="tfNumCartao" type="text" />
+  </div>
+  <div class="rotulo">Bandeira:</div>
+  <div>
+    <select name="cbBandeira" id="cbBandeira">
+      <option value="" selected>Selecione...</option>
+      <option value="VISA">Visa</option>
+      <option value="MASTER">Mastercard</option>
+      <option value="ELO">Elo</option>
+      <option value="HIPERCARD">Hipercard</option>
+      <option value="AMEX">Amex</option>
+      <option value="DINERS">Diners</option>
+    </select>  
+  </div>
+  <div class="rotulo">Validade (Mês/Ano)</div>
+  <div>
+    <input id="tfMesValidade" type="text" class="trinta" />&nbsp;&nbsp;/&nbsp;
+    <input id="tfAnoValidade" type="text" class="trinta" />
+  </div>
+</div>
+<div class="caixaBotoes">
+  <div>
+    <button id="btOk">
+      Ok
+    </button>
+    <button id="btCancelar">
+      Cancelar
+    </button>
+  </div>
+</div>

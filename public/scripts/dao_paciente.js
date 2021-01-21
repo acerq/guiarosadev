@@ -82,7 +82,9 @@ export default class DAOPaciente {
     numeroNovo,
     complementoNovo,
     bairroNovo,
-    cepNovo
+    cepNovo,
+    cidadeNovo,
+    ufNovo
   ) {
     if (cpfNovo == null || cpfNovo == "") {
       alert("O CPF deve ser preenchido.");
@@ -114,8 +116,8 @@ export default class DAOPaciente {
       return false;
     }
 
-    if (ruaNovo == null || ruaNovo == "") {
-      alert("A rua do endereço deve ser preenchida.");
+    if (cepNovo == null || cepNovo == "") {
+      alert("O CEP deve ser preenchido.");
       return false;
     }
 
@@ -130,8 +132,13 @@ export default class DAOPaciente {
       return false;
     }
 
-    if (complementoNovo == null) {
+    if(complementoNovo == null) {
       complementoNovo = "";
+    }
+
+    if (ruaNovo == null || ruaNovo == "") {
+      alert("A rua do endereço deve ser preenchida.");
+      return false;
     }
 
     if (bairroNovo == null || bairroNovo == "") {
@@ -139,10 +146,16 @@ export default class DAOPaciente {
       return false;
     }
 
-    if (cepNovo == null || cepNovo == "") {
-      alert("O CEP deve ser preenchido.");
+    if (cidadeNovo == null || cidadeNovo == "") {
+      alert("A cidade deve ser preenchida.");
       return false;
     }
+
+    if (ufNovo == null || ufNovo == "") {
+      alert("A UF deve ser preenchida.");
+      return false;
+    }
+
     return true;
   }
 
@@ -157,7 +170,9 @@ export default class DAOPaciente {
     numeroNovo,
     complementoNovo,
     bairroNovo,
-    cepNovo
+    cepNovo,
+    cidadeNovo,
+    ufNovo
   ) {
     if (
       !this.validarDados(
@@ -169,7 +184,9 @@ export default class DAOPaciente {
         numeroNovo,
         complementoNovo,
         bairroNovo,
-        cepNovo
+        cepNovo,
+        cidadeNovo,
+        ufNovo
       )
     )
       return false;
@@ -193,9 +210,14 @@ export default class DAOPaciente {
         numero: numeroNovo,
         complemento: complementoNovo,
         bairro: bairroNovo,
-        cep: cepNovo
+        cep: cepNovo,
+        cidade: cidadeNovo,
+        uf: ufNovo
       });
     });
+      
+    if(complementoNovo == null || complementoNovo == "")
+      complementoNovo = "null";
 
     // md5('@@MedicoNoApp@@') --> 5759494f25129de6d0bd71f41a582a8c
     let retorno = fetch(
@@ -218,7 +240,7 @@ export default class DAOPaciente {
         "/" +
         bairroNovo +
         "/" +
-        cepNovo
+        cepNovo, { credentials : "include" }
     )
       .then(response => {
         console.log("(app.js) incluirPaciente response");
@@ -246,7 +268,9 @@ export default class DAOPaciente {
     numeroNovo,
     complementoNovo,
     bairroNovo,
-    cepNovo
+    cepNovo,
+    cidadeNovo,
+    ufNovo
   ) {
     if (
       !this.validarDados(
@@ -258,7 +282,9 @@ export default class DAOPaciente {
         numeroNovo,
         complementoNovo,
         bairroNovo,
-        cepNovo
+        cepNovo,
+        cidadeNovo,
+        ufNovo
       )
     )
       return false;
@@ -293,6 +319,8 @@ export default class DAOPaciente {
             updateData.complemento = complementoNovo;
             updateData.bairro = bairroNovo;
             updateData.cep = cepNovo;
+            updateData.cidade = cidadeNovo;
+            updateData.uf = ufNovo;
             const request = cursor.update(updateData);
             request.onsuccess = () => {
               console.log("[DAOPaciente.alterar] Cursor update - Sucesso ");
@@ -303,7 +331,9 @@ export default class DAOPaciente {
         }
       };
     });
-
+      
+    if(complementoNovo == null || complementoNovo == "")
+      complementoNovo = "null";
     // md5('@@MedicoNoApp@@') --> 5759494f25129de6d0bd71f41a582a8c
     let retorno = fetch(
       "/incluirPaciente/" +
@@ -325,7 +355,7 @@ export default class DAOPaciente {
         "/" +
         bairroNovo +
         "/" +
-        cepNovo
+        cepNovo, { credentials : "include" }
     )
       .then(response => {
         console.log("(app.js) incluirPaciente response");

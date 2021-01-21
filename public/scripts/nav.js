@@ -1,15 +1,9 @@
 const divConteudo = document.getElementById("divConteudo");
 var usrApp = null;
-var inicio = false;
-
-$("#hdr").load("burger.html");
 
 // -----------------------------------------------------------------------------------------//
 
-doObterUsuarioCorrente().then(retorno => {
-  console.log("abrirApp retorno", retorno);
-  renderObterUsuarioCorrente(retorno);
-});
+$("#hdr").load("burger.html");
 
 // -----------------------------------------------------------------------------------------//
 
@@ -26,7 +20,7 @@ setTimeout(function() {
 // -----------------------------------------------------------------------------------------//
 
 if ("ontouchstart" in window) {
-//  var click = "click";
+  //  var click = "click";
 }
 
 $("div.burger").on("click", function() {
@@ -45,10 +39,8 @@ $("div.menu ul li a").on("click", function(e) {
 // -----------------------------------------------------------------------------------------//
 
 function irPara(ref) {
-  if(!ref.includes(".pdf"))
-    window.location.href = ref;
-  else
-    window.open(ref);
+  if (!ref.includes(".pdf")) window.location.href = ref;
+  else window.open(ref);
 }
 
 // -----------------------------------------------------------------------------------------//
@@ -101,36 +93,37 @@ function closeMenu() {
 // -----------------------------------------------------------------------------------------//
 
 async function doObterUsuarioCorrente() {
-  console.log("(app.js) Executando doLoad ");
-  let response = await fetch("/obterUsuarioCorrente");
-  return await response.json();
+  let response = await fetch("/obterUsuarioCorrente", { credentials : "include" });
+  usrApp = await response.json();
+  renderObterUsuarioCorrente(); 
+  return usrApp;
 }
 
 // -----------------------------------------------------------------------------------------//
 
-function renderObterUsuarioCorrente(retorno) {
-  usrApp = retorno;
-  if (usrApp.ehMedico) {
-	  $("#menu").load("menu_medico.html");
-    $("#container-de-icones").load("icones_medico.html");
-  }
-  else {
-	  $("#menu").load("menu_paciente.html");
-    $("#container-de-icones").load("icones_paciente.html");
-  }
-  
-  if (inicio) {
-    console.log(usrApp);
-    divConteudo.innerHTML = "";
-    if (usrApp.ehMedico)
-      divConteudo.innerHTML +=
-        "<center><b>Atendimento a Médicos</center></b><br/>";
-    divConteudo.innerHTML +=
-      "<center><b>Bem-vindo(a)</b> " +
-      usrApp.nome +
-      "&nbsp;&nbsp;(" +
-      usrApp.login +
-      ")</center>";
+function renderObterUsuarioCorrente() {
+  if (usrApp.login != null) {
+    if (usrApp.ehMedico) {
+      $("#menu").load("menu_medico.html");
+      $("#container-de-icones").load("icones_medico.html");
+      if(document.URL.includes("inicio.html"))
+        divConteudo.innerHTML = "<center><b>Atendimento a Médicos</center></b><br/>";
+    } else {
+      $("#menu").load("menu_paciente.html");
+      $("#container-de-icones").load("icones_paciente.html");
+      if(document.URL.includes("inicio.html"))
+        divConteudo.innerHTML = "";
+    }
+    if(document.URL.includes("inicio.html"))
+      divConteudo.innerHTML += "<center><b>Bem-vindo(a)</b> " + usrApp.nome +
+                             "&nbsp;&nbsp;(" + usrApp.login + ")</center>";
+  } else {
+    if(!exigirLogin()) {
+      $("#menu").load("menu_sem_usuario.html");
+      $("#container-de-icones").load("icones_paciente.html");
+    } else {
+      loginApp();
+    }
   }
   closeMenu();
 }
@@ -138,10 +131,8 @@ function renderObterUsuarioCorrente(retorno) {
 // -----------------------------------------------------------------------------------------//
 
 function cadastroDePacientes() {
-  console.log("(nav.js) Verificando Timeout ");
-  return fetch("/verificarTimeout")
+  return fetch("/verificarTimeout", { credentials : "include" })
     .then(async response => {
-      console.log("(nav.js) VerificarTimeout response");
       let msg = await response.json();
       if (msg.hasOwnProperty("erro")) {
         alert(msg.erro);
@@ -152,7 +143,6 @@ function cadastroDePacientes() {
       return response.json();
     })
     .catch(e => {
-      console.log("(nav.js) do catch", e);
       return null;
     });
 }
@@ -160,10 +150,8 @@ function cadastroDePacientes() {
 // -----------------------------------------------------------------------------------------//
 
 function solicitacaoDeExames() {
-  console.log("(nav.js) Verificando Timeout ");
-  return fetch("/verificarTimeout")
+  return fetch("/verificarTimeout", { credentials : "include" })
     .then(async response => {
-      console.log("(nav.js) VerificarTimeout response");
       let msg = await response.json();
       if (msg.hasOwnProperty("erro")) {
         alert(msg.erro);
@@ -174,7 +162,6 @@ function solicitacaoDeExames() {
       return response.json();
     })
     .catch(e => {
-      console.log("(nav.js) do catch", e);
       return null;
     });
 }
@@ -182,10 +169,8 @@ function solicitacaoDeExames() {
 // -----------------------------------------------------------------------------------------//
 
 function apresentarListas() {
-  console.log("(nav.js) Verificando Timeout ");
-  return fetch("/verificarTimeout")
+  return fetch("/verificarTimeout", { credentials : "include" })
     .then(async response => {
-      console.log("(nav.js) VerificarTimeout response");
       let msg = await response.json();
       if (msg.hasOwnProperty("erro")) {
         alert(msg.erro);
@@ -196,7 +181,6 @@ function apresentarListas() {
       return response.json();
     })
     .catch(e => {
-      console.log("(nav.js) do catch", e);
       return null;
     });
 }
@@ -204,10 +188,8 @@ function apresentarListas() {
 // -----------------------------------------------------------------------------------------//
 
 function paginaInicial() {
-  console.log("(nav.js) Verificando Timeout ");
-  return fetch("/verificarTimeout")
+  return fetch("/verificarTimeout", { credentials : "include" })
     .then(async response => {
-      console.log("(nav.js) VerificarTimeout response");
       let msg = await response.json();
       if (msg.hasOwnProperty("erro")) {
         alert(msg.erro);
@@ -218,35 +200,62 @@ function paginaInicial() {
       return response.json();
     })
     .catch(e => {
-      console.log("(nav.js) do catch", e);
       return null;
     });
 }
 
 // -----------------------------------------------------------------------------------------//
 
-window.retornarUsrApp = function() {
+window.retornarUsrApp = async function() {
+  if(usrApp == null) {
+      await doObterUsuarioCorrente();
+      renderObterUsuarioCorrente();
+  }
   return usrApp;
 };
 
 // -----------------------------------------------------------------------------------------//
 
-function abrirApp() {
-  inicio = true;
+function loginApp() {
+  window.location.href='login.html';
 }
 
 // -----------------------------------------------------------------------------------------//
 
-function fecharApp() {
+async function obterUsrApp() {
+  await doObterUsuarioCorrente();
+  renderObterUsuarioCorrente();
+  return usrApp;
+}
+
+// -----------------------------------------------------------------------------------------//
+
+async function abrirApp() {
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/service-worker.js").then(reg => {
+      });
+    });
+  }
+}
+
+// -----------------------------------------------------------------------------------------//
+
+async function fecharApp() {
+  let response = await fetch("/inicio", { credentials : "include" });
+  usrApp = await response.json();
+  closeMenu();
   try {
     navigator.app.exitApp();
-  }
-  catch(e) {
-	  var tamHistory = window.history.length;
-    while(tamHistory > 0) {
-      window.history.go(-1);
-      tamHistory--;
-    }
+  } catch (e) {
+    var tamHistory = window.history.length;
+    if(tamHistory == 0)
+        window.location.href='index.html';
+    else
+      while (tamHistory > 0) {
+        window.history.go(-1);
+        tamHistory--;
+      }
   }
 }
 
@@ -263,3 +272,14 @@ function tirarEspera() {
 }
 
 // -----------------------------------------------------------------------------------------//
+
+function exigirLogin() {
+  let url = document.URL;
+  if(url.charAt(url.length - 1) == '/' || url.includes("cadusuario.html") || url.includes("login.html"))
+    return false;
+  return true;
+}
+
+// -----------------------------------------------------------------------------------------//
+
+obterUsrApp();

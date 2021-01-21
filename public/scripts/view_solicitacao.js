@@ -2,7 +2,7 @@
 
 const SEPARADOR = "##";
 const funcaoMD5 = new Function("a", "return md5(a)");
-const funcaoObterUsuario = new Function("b", "return usrApp.login");
+
 const fnTirarEspera = new Function("tirarEspera()");
 const fnColocarEspera = new Function("colocarEspera()");
 
@@ -19,7 +19,6 @@ export default class ViewSolicitacao {
   constructor(ctrlSolicitacao) {
     this.ctrl = ctrlSolicitacao;
 
-    this.usrApp = null;
     self = this;
 
     this.tfExame = document.getElementById("tfExame");
@@ -32,13 +31,17 @@ export default class ViewSolicitacao {
     this.btConsultar = document.getElementById("btConsultar");
     this.btEnviar = document.getElementById("btEnviar");
     this.btSair = document.getElementById("btSair");
+    this.usuarioLogado = true;
 
     this.divResposta = document.getElementById("divResposta");
 
     this.btSair.onclick = this.sair;
-    this.btEnviar.onclick = this.irParaCheckout;
-    this.btPacientes.onclick = this.ctrl.chamarCadastrarPacientes;
     this.btConsultar.onclick = this.obterExames;
+
+    if (this.btPacientes != null) {
+      this.btPacientes.onclick = this.ctrl.chamarCadastrarPacientes;
+      this.btEnviar.onclick = this.irParaCheckout;
+    } else this.usuarioLogado = false;
 
     //---- Elementos da página de pagamento
     this.tfNomeCartao = null;
@@ -69,22 +72,30 @@ export default class ViewSolicitacao {
       }
     });
 
-    this.pwSenha.addEventListener("keyup", function(event) {
-      if (event.keyCode === 13) {
-        this.irParaCheckout();
-      }
-    });
+    if (this.usuarioLogado)
+      this.pwSenha.addEventListener("keyup", function(event) {
+        if (event.keyCode === 13) {
+          self.irParaCheckout();
+        }
+      });
   }
 
   //-----------------------------------------------------------------------------------------//
 
   async atualizarInterface(ehMedico, arrayPacientes, arrayLocais) {
     //---- Formata a combobox de pacientes ----//
-    if (ehMedico) {
-      let i,
-        tam = this.cbPaciente.options.length - 1;
-      for (i = tam; i > 0; i--) {
-        this.cbPaciente.remove(i);
+    if (this.usuarioLogado) {
+      if (ehMedico) {
+        let i;
+        let tam = this.cbPaciente.options.length - 1;
+        for (i = tam; i > 0; i--) {
+          this.cbPaciente.remove(i);
+        }
+      } else {
+        this.cbPaciente.remove(this.cbPaciente.selectedIndex);
+        this.btPacientes.hidden = true;
+        this.cbPaciente.style =
+          "width:100%;-webkit-appearance:none;-moz-appearance:none;text-indent:1px;text-overflow: '';";
       }
       await arrayPacientes.forEach(e => {
         var elem = document.createElement("option");
@@ -92,11 +103,6 @@ export default class ViewSolicitacao {
         elem.text = e.nome;
         this.cbPaciente.add(elem);
       });
-    } else {
-      this.cbPaciente.remove(this.cbPaciente.selectedIndex);
-      this.btPacientes.hidden = true;
-      this.cbPaciente.style =
-        "width:100%;-webkit-appearance:none;-moz-appearance:none;text-indent:1px;text-overflow: '';";
     }
     this.dtExame.value = this.dataParaInput();
 
@@ -143,10 +149,10 @@ export default class ViewSolicitacao {
   //-----------------------------------------------------------------------------------------//
 
   dataParaInput() {
-    const agora = new Date();
-    var d = agora.getDate();
-    var m = agora.getMonth() + 1;
-    var y = agora.getFullYear();
+    const amanha = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // Data para Amanhã
+    var d = amanha.getDate();
+    var m = amanha.getMonth() + 1;
+    var y = amanha.getFullYear();
     if (d < 10) d = "0" + d;
     if (m < 10) m = "0" + m;
     return y + "-" + m + "-" + d;
@@ -259,7 +265,6 @@ export default class ViewSolicitacao {
         if (index === array.length - 1) res(retorno);
       });
     }).then(retorno => {
-      
       const divExame = document.getElementById("divExame");
 
       divExame.style = "height:66px";
@@ -305,11 +310,17 @@ export default class ViewSolicitacao {
       alert("O exame não foi escolhido.");
       return;
     }
-    let solicitante = "XXXX";
     let pacienteValue = self.cbPaciente.value;
     if (pacienteValue == null || pacienteValue == "") {
       fnTirarEspera();
       alert("O paciente não foi escolhido.");
+      return;
+    }
+    
+    let faturar = self.cbFaturar.value;
+    if (faturar == null) {
+      fnTirarEspera();
+      alert("Não foi indicado se o exame será faturado ou não.");
       return;
     }
     let data = self.dtExame.value;
@@ -318,12 +329,29 @@ export default class ViewSolicitacao {
       alert("A data não foi escolhida.");
       return;
     }
-    let faturar = self.cbFaturar.value;
-    if (faturar == null) {
+
+    let dataIndicada = new Date(data + " 00:00:00 GMT-03:00");
+    dataIndicada = new Date(dataIndicada);
+    let hoje = new Date();
+    hoje = new Date(hoje);
+    if (dataIndicada < hoje) {
       fnTirarEspera();
-      alert("Não foi indicado se o exame será faturado ou não.");
+      alert("Data do exame deve ser posterior a hoje.");
       return;
     }
+
+    // Data Para Boleto
+    let formaPgto = self.cbFaturar.value;
+    if (formaPgto == "Boleto") {
+      let tresDiasDepoisDeHoje = new Date();
+      tresDiasDepoisDeHoje.setDate(tresDiasDepoisDeHoje.getDate() + 3);
+      if (dataIndicada <= tresDiasDepoisDeHoje) {
+        fnTirarEspera();
+        alert("Com pagamento por boleto, a data do agendamento deve ser para três dias a frente, no mínimo.");
+        return;
+      }
+    }
+    
     let senha = funcaoMD5(self.pwSenha.value);
     if (senha == null) {
       fnTirarEspera();
@@ -335,22 +363,51 @@ export default class ViewSolicitacao {
     if (!(await self.ctrl.verificarSenha(senha))) {
       fnTirarEspera();
       alert("Senha não confere.");
+      return;
     }
 
     let dadosPaciente = self.cbPaciente.value.split(SEPARADOR);
     self.nomePaciente = dadosPaciente[0];
-    self.cpfPaciente = dadosPaciente[1];
+    self.cpfPaciente = dadosPaciente[1].replace(/\.|-/g, "");
     self.emailPaciente = dadosPaciente[2];
 
+    let selecao = self.dadosExame.text.split(SEPARADOR);
+    let nomeExame = tiraEspacos(selecao[0]).replace(/\//g, " ");
+    let nomeExecutante = tiraEspacos(selecao[1]).replace(/\//g, " ");
+    let endereco = tiraEspacos(selecao[2]).replace(/\//g, " ");
+    
     fnTirarEspera();
-    alert("Procedendo checkout do pedido de exame");
-    self.colocarFormPgto();
+    if (formaPgto == "Crédito" || formaPgto == "Débito") {
+      alert("Procedendo checkout por " + formaPgto + " para o pedido de exame");
+      self.colocarFormPgto(formaPgto);
+    }
+    if (formaPgto == "Boleto") {
+      alert("Procedendo checkout do pedido de exame - Geração do Boleto");
+      fnColocarEspera();
+      self.ctrl.enviarAgendamentoPgtoBoleto(
+        self.codExecutanteSelecionado,
+        self.cpfPaciente,
+        self.nomePaciente,
+        self.emailPaciente,
+        self.codExameSelecionado,
+        data,
+        nomeExame,
+        nomeExecutante,
+        endereco,
+        self.valorExameSelecionado.replace(/\./g, ""),
+        formaPgto
+      );
+      fnTirarEspera();
+    }
   }
 
   //-----------------------------------------------------------------------------------------//
 
-  colocarFormPgto() {
-    $("#divConteudo").load("pgto.html", function() {
+  colocarFormPgto(forma) {
+    let endereco = "pgto_credito.html";
+    if(forma != "Crédito")
+      endereco = "pgto_debito.html"
+    $("#divConteudo").load(endereco, function() {
       self.tfNomeCartao = document.getElementById("tfNomeCartao");
       self.tfNumCartao = document.getElementById("tfNumCartao");
       self.tfMesValidade = document.getElementById("tfMesValidade");
@@ -363,7 +420,7 @@ export default class ViewSolicitacao {
       $("#tfNumCartao").mask("9999 9999 9999 9999");
       $("#tfMesValidade").mask("99");
       $("#tfAnoValidade").mask("9999");
-      
+
       let selecao = self.dadosExame.text.split(SEPARADOR);
       let msg =
         "<center><b>Exame Solicitado:</b><br/>" +
@@ -383,11 +440,55 @@ export default class ViewSolicitacao {
     });
   }
 
-  //-----------------------------------------------------------------------------------------//
+//-----------------------------------------------------------------------------------------//
+
+exibirConfirmacao(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecutante, endereco, valor, formaPgto, 
+                  merchantOrderId, url) {
+  $("#divConteudo").empty();
+  // $("#divConteudo").html("<div id='pdfId'></div><script>PDFObject.embed('" + arq +"#zoom=30', '#pdfId');</script><button onclick='window.history.go(-1)' style='width:100%;'>Fechar</button>");
+  $("#divConteudo").load("comprovante.html", function() {
+
+    $("#cpfPaciente").html(cpfPaciente);
+    $("#nomePaciente").html(nomePaciente);
+    $("#nomeExame").html(nomeExame);
+    $("#nomeExecutante").html(nomeExecutante);
+    $("#dataExame").html(dataExame);
+    $("#endereco").html(endereco);
+    $("#valor").html(valor);
+    $("#formaPgto").html(formaPgto);
+    $("#merchantOrderId").html(merchantOrderId);
+    if(url != null)
+      $("#boleto").html("<a href='" + url + "'>Clique aqui para visualizar o boleto</a>");
+  });
+}
+
+//-----------------------------------------------------------------------------------------//
+
+apresentarPgtoDebito(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecutante, endereco, valor, formaPgto, 
+                  merchantOrderId, url) {
+  $("#divConteudo").empty();
+  // $("#divConteudo").html("<div id='pdfId'></div><script>PDFObject.embed('" + arq +"#zoom=30', '#pdfId');</script><button onclick='window.history.go(-1)' style='width:100%;'>Fechar</button>");
+  $("#divConteudo").load("comprovante.html", function() {
+
+    $("#cpfPaciente").html(cpfPaciente);
+    $("#nomePaciente").html(nomePaciente);
+    $("#nomeExame").html(nomeExame);
+    $("#nomeExecutante").html(nomeExecutante);
+    $("#dataExame").html(dataExame);
+    $("#endereco").html(endereco);
+    $("#valor").html(valor);
+    $("#formaPgto").html(formaPgto);
+    $("#merchantOrderId").html(merchantOrderId);
+    if(url != null)
+      $("#boleto").html("<a href='" + url + "'>Clique aqui para visualizar o boleto</a>");
+  });
+}
+
+//-----------------------------------------------------------------------------------------//
 
   enviarSolicitacao() {
     fnColocarEspera();
-    
+
     let numCartao = self.tfNumCartao.value;
     if (numCartao == null || numCartao == "") {
       fnTirarEspera();
@@ -400,7 +501,7 @@ export default class ViewSolicitacao {
       alert("O número do cartão não foi informado corretamente!");
       return;
     }
-    
+
     let nomeCartao = self.tfNomeCartao.value;
     if (nomeCartao == null || nomeCartao == "") {
       fnTirarEspera();
@@ -409,12 +510,12 @@ export default class ViewSolicitacao {
     }
 
     let bandeira = self.cbBandeira.value;
-    if (bandeira == null || bandeira == "" ) {
+    if (bandeira == null || bandeira == "") {
       fnTirarEspera();
       alert("A Bandeira não foi selecionada.");
       return;
     }
-    
+
     let mesValidade = self.tfMesValidade.value;
     if (mesValidade == null || mesValidade == "") {
       fnTirarEspera();
@@ -441,42 +542,78 @@ export default class ViewSolicitacao {
       alert("Cartão com validade expirada!");
       return;
     }
-    if(anoValidade == parseInt(agora.getFullYear() && mesValidade < parseInt(agora.getMonth())+1)) {
+    if (
+      anoValidade ==
+      parseInt(
+        agora.getFullYear() && mesValidade < parseInt(agora.getMonth()) + 1
+      )
+    ) {
       fnTirarEspera();
       alert("Cartão com validade expirada!");
       return;
     }
 
-    let cvv = self.tfCvv.value;
-    if (cvv == null || cvv == "" || cvv.length != 3) {
-      fnTirarEspera();
-      alert("CVV inválido!");
-      return;
+    let cvv = null;
+    let forma = self.cbFaturar.value;
+    if(forma == "Crédito") { // Só verificamos o CVV no crédito
+      cvv = self.tfCvv.value;
+      if (cvv == null || cvv == "" || cvv.length != 3) {
+        fnTirarEspera();
+        alert("CVV inválido!");
+        return;
+      }
     }
-    
-    let selecao = self.dadosExame.text.split(SEPARADOR);
-    let nomeExame = tiraEspacos(selecao[0]);
-    let nomeExecutante = tiraEspacos(selecao[1]);
-    let endereco = tiraEspacos(selecao[2]);
 
-    self.ctrl.enviarPagamentoAgendamento(
-      self.codExecutanteSelecionado,
-      self.cpfPaciente.replace(/\.|-/g, ""),
-      self.nomePaciente,
-      self.emailPaciente,
-      self.codExameSelecionado,
-      self.dtExame.value,
-      numCartao,
-      nomeCartao,
-      bandeira,
-      mesValidade,
-      anoValidade,
-      cvv,
-      nomeExame,
-      nomeExecutante,
-      endereco,
-      self.valorExameSelecionado.replace(/\./g, ""),
-    );
+    let selecao = self.dadosExame.text.split(SEPARADOR);
+    let nomeExame = tiraEspacos(selecao[0]).replace(/\//g, " ");
+    let nomeExecutante = tiraEspacos(selecao[1]).replace(/\//g, " ");
+    let endereco = tiraEspacos(selecao[2]).replace(/\//g, " ");
+
+    self.cpfPaciente = self.cpfPaciente.replace(/\.|-/g, "");
+    self.valorExameSelecionado = self.valorExameSelecionado.replace(/\./g, "");
+    
+    if (forma == "Crédito") {
+      self.ctrl.enviarAgendamentoPgtoCC(
+        self.codExecutanteSelecionado,
+        self.cpfPaciente,
+        self.nomePaciente,
+        self.emailPaciente,
+        self.codExameSelecionado,
+        self.dtExame.value,
+        numCartao,
+        nomeCartao,
+        bandeira,
+        mesValidade,
+        anoValidade,
+        cvv,
+        nomeExame,
+        nomeExecutante,
+        endereco,
+        self.valorExameSelecionado.replace(/\./g, ""),
+        forma
+      );
+    } else if (forma == "Débito") {
+      {
+        self.ctrl.enviarAgendamentoPgtoDebito(
+          self.codExecutanteSelecionado,
+          self.cpfPaciente,
+          self.nomePaciente,
+          self.emailPaciente,
+          self.codExameSelecionado,
+          self.dtExame.value,
+          numCartao,
+          nomeCartao,
+          bandeira,
+          mesValidade,
+          anoValidade,
+          nomeExame,
+          nomeExecutante,
+          endereco,
+          self.valorExameSelecionado.replace(/\./g, ""),
+          forma
+        );
+      }
+    }
     fnTirarEspera();
   }
 
