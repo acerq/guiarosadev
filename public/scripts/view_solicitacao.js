@@ -24,24 +24,28 @@ export default class ViewSolicitacao {
     this.tfExame = document.getElementById("tfExame");
     this.cbPaciente = document.getElementById("cbPaciente");
     this.cbExame = document.getElementById("cbExame");
-    this.dtExame = document.getElementById("dtExame");
     this.cbFaturar = document.getElementById("cbFaturar");
     this.pwSenha = document.getElementById("pwSenha");
     this.btPacientes = document.getElementById("btPacientes");
     this.btConsultar = document.getElementById("btConsultar");
     this.btEnviar = document.getElementById("btEnviar");
-    this.btSair = document.getElementById("btSair");
+    this.btVoltarOuAgendar = document.getElementById("btVoltarOuAgendar");
     this.usuarioLogado = true;
 
     this.divResposta = document.getElementById("divResposta");
 
-    this.btSair.onclick = this.sair;
+    this.btVoltarOuAgendar.onclick = this.voltarOuAgendar;
+    this.btVoltarOuAgendar.view = this;
     this.btConsultar.onclick = this.obterExames;
 
     if (this.btPacientes != null) {
       this.btPacientes.onclick = this.ctrl.chamarCadastrarPacientes;
       this.btEnviar.onclick = this.irParaCheckout;
-    } else this.usuarioLogado = false;
+      this.btVoltarOuAgendar.innerHTML = "Voltar";
+    } else { 
+      this.usuarioLogado = false;
+      this.btVoltarOuAgendar.innerHTML = "Gerar Voucher";
+    }
 
     //---- Elementos da página de pagamento
     this.tfNomeCartao = null;
@@ -63,9 +67,10 @@ export default class ViewSolicitacao {
     this.nomePaciente = null;
     this.cpfPaciente = null;
     this.dadosExame = null;
-    this.dataExame = null;
     this.formaPgto = null;
 
+    this.db = null; //TODO
+    
     $(document).on("keypress", "input", function(e) {
       if (e.which == 13 && e.target == self.tfExame) {
         self.obterExames();
@@ -104,7 +109,6 @@ export default class ViewSolicitacao {
         this.cbPaciente.add(elem);
       });
     }
-    this.dtExame.value = this.dataParaInput();
 
     //---- Formata a combobox de locais ----//
     let optionsLocais = await new Promise((resolve, reject) => {
@@ -144,18 +148,6 @@ export default class ViewSolicitacao {
     var novoSpan = document.createElement("span");
     novoSpan.innerHTML = returnString;
     return novoSpan;
-  }
-
-  //-----------------------------------------------------------------------------------------//
-
-  dataParaInput() {
-    const amanha = new Date(new Date().getTime() + 24 * 60 * 60 * 1000); // Data para Amanhã
-    var d = amanha.getDate();
-    var m = amanha.getMonth() + 1;
-    var y = amanha.getFullYear();
-    if (d < 10) d = "0" + d;
-    if (m < 10) m = "0" + m;
-    return y + "-" + m + "-" + d;
   }
 
   //-----------------------------------------------------------------------------------------//
@@ -323,34 +315,10 @@ export default class ViewSolicitacao {
       alert("Não foi indicado se o exame será faturado ou não.");
       return;
     }
-    let data = self.dtExame.value;
-    if (data == null) {
-      fnTirarEspera();
-      alert("A data não foi escolhida.");
-      return;
-    }
-
-    let dataIndicada = new Date(data + " 00:00:00 GMT-03:00");
-    dataIndicada = new Date(dataIndicada);
-    let hoje = new Date();
-    hoje = new Date(hoje);
-    if (dataIndicada < hoje) {
-      fnTirarEspera();
-      alert("Data do exame deve ser posterior a hoje.");
-      return;
-    }
-
     // Data Para Boleto
     let formaPgto = self.cbFaturar.value;
-    if (formaPgto == "Boleto") {
-      let tresDiasDepoisDeHoje = new Date();
-      tresDiasDepoisDeHoje.setDate(tresDiasDepoisDeHoje.getDate() + 3);
-      if (dataIndicada <= tresDiasDepoisDeHoje) {
-        fnTirarEspera();
-        alert("Com pagamento por boleto, a data do agendamento deve ser para três dias a frente, no mínimo.");
-        return;
-      }
-    }
+    let tresDiasDepoisDeHoje = new Date();
+    tresDiasDepoisDeHoje.setDate(tresDiasDepoisDeHoje.getDate() + 3);
     
     let senha = funcaoMD5(self.pwSenha.value);
     if (senha == null) {
@@ -390,7 +358,7 @@ export default class ViewSolicitacao {
         self.nomePaciente,
         self.emailPaciente,
         self.codExameSelecionado,
-        data,
+        tresDiasDepoisDeHoje,
         nomeExame,
         nomeExecutante,
         endereco,
@@ -436,13 +404,13 @@ export default class ViewSolicitacao {
       $("#divExame").html(msg);
 
       self.btOk.onclick = self.enviarSolicitacao;
-      self.btCancelar.onclick = self.sair;
+      self.btCancelar.onclick = self.voltarOuAgendar;
     });
   }
 
 //-----------------------------------------------------------------------------------------//
 
-exibirConfirmacao(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecutante, endereco, valor, formaPgto, 
+exibirConfirmacao(cpfPaciente, nomePaciente, nomeExame, nomeExecutante, endereco, valor, formaPgto, 
                   merchantOrderId, url) {
   $("#divConteudo").empty();
   // $("#divConteudo").html("<div id='pdfId'></div><script>PDFObject.embed('" + arq +"#zoom=30', '#pdfId');</script><button onclick='window.history.go(-1)' style='width:100%;'>Fechar</button>");
@@ -452,7 +420,6 @@ exibirConfirmacao(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecutant
     $("#nomePaciente").html(nomePaciente);
     $("#nomeExame").html(nomeExame);
     $("#nomeExecutante").html(nomeExecutante);
-    $("#dataExame").html(dataExame);
     $("#endereco").html(endereco);
     $("#valor").html(valor);
     $("#formaPgto").html(formaPgto);
@@ -464,17 +431,15 @@ exibirConfirmacao(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecutant
 
 //-----------------------------------------------------------------------------------------//
 
-apresentarPgtoDebito(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecutante, endereco, valor, formaPgto, 
+apresentarPgtoDebito(cpfPaciente, nomePaciente, nomeExame, nomeExecutante, endereco, valor, formaPgto, 
                   merchantOrderId, url) {
   $("#divConteudo").empty();
-  // $("#divConteudo").html("<div id='pdfId'></div><script>PDFObject.embed('" + arq +"#zoom=30', '#pdfId');</script><button onclick='window.history.go(-1)' style='width:100%;'>Fechar</button>");
   $("#divConteudo").load("comprovante.html", function() {
 
     $("#cpfPaciente").html(cpfPaciente);
     $("#nomePaciente").html(nomePaciente);
     $("#nomeExame").html(nomeExame);
     $("#nomeExecutante").html(nomeExecutante);
-    $("#dataExame").html(dataExame);
     $("#endereco").html(endereco);
     $("#valor").html(valor);
     $("#formaPgto").html(formaPgto);
@@ -579,7 +544,6 @@ apresentarPgtoDebito(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecut
         self.nomePaciente,
         self.emailPaciente,
         self.codExameSelecionado,
-        self.dtExame.value,
         numCartao,
         nomeCartao,
         bandeira,
@@ -600,7 +564,6 @@ apresentarPgtoDebito(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecut
           self.nomePaciente,
           self.emailPaciente,
           self.codExameSelecionado,
-          self.dtExame.value,
           numCartao,
           nomeCartao,
           bandeira,
@@ -619,8 +582,25 @@ apresentarPgtoDebito(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecut
 
   //-----------------------------------------------------------------------------------------//
 
-  sair() {
-    history.go(-1);
+  async voltarOuAgendar() {
+    if(this.view.usuarioLogado)
+      history.go(-1);
+    else {
+      if (this.view.codExecutanteSelecionado == null) {
+        fnTirarEspera();
+        alert("O exame não foi escolhido.");
+        return;
+      }
+      if (this.view.codExameSelecionado == null) {
+        fnTirarEspera();
+        alert("O exame não foi escolhido.");
+        return;
+      }
+      //this.view.abrirDBConsulta();
+      //this.view.salvarConsulta();
+      alert("Para emitir um voucher para este exame, precisamos solicitar seus dados para identificação.");
+      window.location.href = "cadusuario.html";
+    }
   }
 
   //-----------------------------------------------------------------------------------------//
@@ -636,6 +616,57 @@ apresentarPgtoDebito(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecut
   }
 
   //-----------------------------------------------------------------------------------------//
+  
+  async abrirDBConsulta() {
+    this.db = await new Promise(function(resolve, reject) {
+      var requestDB = window.indexedDB.open("ConsultaUsr", 1); 
+      requestDB.onupgradeneeded = event => {
+        console.log("Criando IndexedDB Consulta");
+        let db = event.target.result;
+        let store = db.createObjectStore("Consulta", {
+          autoIncrement: true
+        });
+        store.createIndex("id", "id", { unique: true });
+      };
+
+      requestDB.onerror = event => {
+        alert("Erro [DBConsulta]: " + event.target.errorCode);
+        reject(Error("Error: " + event.target.errorCode));
+      };
+
+      requestDB.onsuccess = event => {
+        console.log("[DBConsulta] Sucesso");
+        if (event.target.result) resolve(event.target.result);
+        else reject(Error("object not found"));
+      };
+    });
+  }
+  
+ //-----------------------------------------------------------------------------------------//
+  
+  async salvarConsulta() {
+    fnColocarEspera();
+
+    let db = this.db;
+    let resultado = await new Promise(function(resolve, reject) {
+      let transacao = db.transaction(["Consulta"], "readwrite");
+      transacao.oncomplete = event => {
+        console.log("[Consulta] Sucesso");
+        resolve("Ok");
+      };
+      let store = transacao.objectStore("Consulta");
+      store.add({
+          id: 1,
+          codLocalSelecionado : self.codLocalSelecionado,
+          tfExame : self.tfExame.value,
+          dadosExame : self.dadosExame.params.data
+      });
+    });      
+    return true;
+  }
+
+  //-----------------------------------------------------------------------------------------//
+
 }
 
 //-----------------------------------------------------------------------------------------//

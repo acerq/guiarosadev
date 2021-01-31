@@ -21,18 +21,16 @@
   <body>
     <header id="hdr" class="header">Guia Rosa App</header>
     <main class="main">
-      <div id="menu"></div>
-
+      <div class="circle"></div>
+      <div id="divInstrucao" class="apresentacao_app">
+        <b>Procure Locais para Exame</b>
+      </div>
       <div id="divConteudo" class="caixaDialog">
         <div class="grade">
           <div class="rotulo">
             Local:
           </div>
           <div id="divLocal"></div>
-          <div class="rotulo">Data do Exame:</div>
-          <div>
-            <input type="date" id="dtExame" />
-          </div>
           <div class="rotulo">Exame:</div>
           <div id="divTfExame">
             <input
@@ -50,22 +48,36 @@
           <div id="divExame"></div>
         </div>
         <div class="caixaBotoes">
-          <button id="btSair">
-            Sair
+          <button id="btVoltarOuAgendar">
+            Gerar Voucher
           </button>
         </div>
         <div id="logo"></div>
       </div>
-      <div class="icone-container" onclick="window.location.href='login.html'">
-        <div class="icone">
-          <img src="images/icons/paciente.png" />
-          <div class="texto">Efetuar Login</div>
+ <div  class="container-de-icones">
+      <div
+          class="icone-container"
+          onclick="window.location.href='login.html'">
+          <div class="icone">
+            <img src="images/icons/paciente.png" />
+            <div class="texto">Efetuar Login</div>
+          </div>
+        </div>
+        <div
+          class="icone-container"
+          onclick="window.location.href='cadusuario.html';">
+          <div class="icone">
+            <img src="images/icons/paciente.png" />
+            <div class="texto">Criar Conta</div>
+          </div>
         </div>
       </div>
     </main>
     <footer class="footer"></footer>
     <script src="scripts/nav.js"></script>
-    <script>abrirApp();</script>
+    <script>
+      abrirApp();
+    </script>
     <script type="module" src="scripts/uc_solicitacao.js"></script>
     <script src="scripts/md5.min.js"></script>
     <script src="scripts/select2.js"></script>

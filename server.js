@@ -29,6 +29,7 @@ function setPeriodo() {
     client.Wsretornaperiodo(null, function(err, result1) {
       console.log("WSretornaperiodo webservice");
       if (err) {
+        console.log("ERRO setLocais: " + JSON.stringify(err));
         console.log("WSretornaperiodo Err -> ", err.response.body);
         dtPeriodo = null;
         return;
@@ -55,6 +56,7 @@ function setLocais() {
     client.Wsretornalocais(null, function(err, result1) {
       console.log("WSretornalocais webservice");
       if (err) {
+        console.log("ERRO setLocais: " + JSON.stringify(err));
         locais = null;
         return;
       }
@@ -211,7 +213,7 @@ PgtoCredito.prototype.setDadosPgto = function(merchantOrderId, status, proofOfSa
 
 //-----------------------------------------------------------------------------------------//
 
-function Agendamento(executante, solicitante, paciente, cpf, codExame, nomeExame, nomeExecutante, enderecoExecutante, dataExame, faturar) {
+function Agendamento(executante, solicitante, paciente, cpf, codExame, nomeExame, nomeExecutante, enderecoExecutante, faturar) {
   this.executante = executante;
   this.solicitante = solicitante;
   this.paciente = paciente;
@@ -220,7 +222,6 @@ function Agendamento(executante, solicitante, paciente, cpf, codExame, nomeExame
   this.nomeExame = nomeExame;
   this.nomeExecutante = nomeExecutante;
   this.enderecoExecutante = enderecoExecutante;
-  this.dataExame = dataExame;
   this.faturar = faturar;
 }
 
@@ -425,8 +426,8 @@ function doLoginPaciente(req, resp) {
       let resposta = JSON.parse(wsResposta.WsvalidapacienteReturn.$value);
       if (resposta.status == "error") {
         console.log("-----> " + wsResposta.WsvalidapacienteReturn.$value);
-        // resp.json(JSON.parse('{"erro" : "[Erro:#0006] Login Inválido"}'));
-        // return;
+        resp.json(JSON.parse('{"erro" : "[Erro:#0006] Login Inválido"}'));
+        return;
       }
       console.log("doLoginPaciente Resposta ->", wsResposta);
       
@@ -664,7 +665,6 @@ function doAgendamento(req, resp) {
   let nomeExame = req.params.nomeExame;
   let nomeExecutante = req.params.nomeExecutante;
   let enderecoExecutante = req.params.enderecoExecutante;
-  let dataExame = req.params.data;
   let faturar = req.params.faturar;
 
   console.log("Agendamento - " + sessao.login);
@@ -682,7 +682,6 @@ function doAgendamento(req, resp) {
     typeof nomeExame === "undefined" ||
     typeof nomeExecutante === "undefined" ||
     typeof enderecoExecutante === "undefined" ||
-    typeof dataExame === "undefined" ||
     typeof faturar === "undefined"
   ) {
     console.log("undefined 0006");
@@ -691,7 +690,7 @@ function doAgendamento(req, resp) {
   }
 
   let agendamento = new Agendamento(executante, solicitante, paciente, cpf, codExame, nomeExame, 
-                                    nomeExecutante, enderecoExecutante, dataExame, faturar);
+                                    nomeExecutante, enderecoExecutante, faturar);
   sessao.agendamento = agendamento;
   
   let dados =
@@ -709,9 +708,6 @@ function doAgendamento(req, resp) {
     '",' +
     '"CD_EXAME":"' +
     codExame +
-    '",' +
-    '"DT_EXAME":"' +
-    acertaData(dataExame) +
     '",' +
     '"DT_PERIODO":"' +
     dtPeriodo.replace(/-/g, "/") +
@@ -1131,7 +1127,6 @@ async function doGerarConfirmacao(req, resp) {
   let numeroCartao = req.params.numeroCartao;
   let nomeCartao = req.params.nomeCartao;
   let bandeira = req.params.bandeira;
-  let dataExame = req.params.dataExame;
   let nomeExame = req.params.nomeExame;
   let nomeExecutante = req.params.nomeExecutante;
   let endereco = req.params.endereco;
@@ -1149,7 +1144,6 @@ async function doGerarConfirmacao(req, resp) {
     typeof numeroCartao === "undefined" ||
     typeof nomeCartao === "undefined" ||
     typeof bandeira === "undefined" ||
-    typeof dataExame === "undefined" ||
     typeof nomeExame === "undefined" ||
     typeof nomeExecutante === "undefined" ||
     typeof endereco === "undefined" ||
@@ -1193,7 +1187,7 @@ async function doGerarConfirmacao(req, resp) {
   );
   pdf.font("public/fonts/SourceSansPro-SemiBold.ttf")
      .fontSize(25)
-     .text("Agendamento de Exame", 170, 120);
+     .text("Voucher para Execução de Exame", 135, 120);
 
   pdf.font("public/fonts/SourceSansPro-SemiBold.ttf")
      .fontSize(14)
@@ -1202,22 +1196,18 @@ async function doGerarConfirmacao(req, resp) {
      .text(merchantOrderId + "\n");
 
   pdf.font("public/fonts/SourceSansPro-SemiBold.ttf")
+     .text("ID Guia Rosa: #" , 80, 200, {continued: true})
      .text("Exame Agendado:\n");
 
   pdf.font("public/fonts/SourceSansPro-Regular.ttf")
-     .text("    " + nomeExame + "\n")
-     .text("    " + nomeExecutante + "\n")
-     .text("    " + endereco + "\n");
+     .text("       " + nomeExame + "\n")
+     .text("       " + nomeExecutante + "\n")
+     .text("       " + endereco + "\n");
 
   pdf.font("public/fonts/SourceSansPro-SemiBold.ttf")
      .text("Valor: ", {continued: true})
      .font("public/fonts/SourceSansPro-Regular.ttf")
      .text("R$ " + valor + "\n");
-
-  pdf.font("public/fonts/SourceSansPro-SemiBold.ttf")
-     .text("Data: ", {continued: true})
-     .font("public/fonts/SourceSansPro-Regular.ttf")
-     .text(dataExame + "\n");
   
   pdf.font("public/fonts/SourceSansPro-SemiBold.ttf")
      .text("Agendado para: ", {continued: true})
@@ -1336,7 +1326,7 @@ function startServer() {
 
   // Envio de Solicitação de Agendamento de Exame
   app.get(
-    "/agendamento/:executante/:solicitante/:paciente/:cpf/:codExame/:nomeExame/:nomeExecutante/:enderecoExecutante/:data/:faturar",
+    "/agendamento/:executante/:solicitante/:paciente/:cpf/:codExame/:nomeExame/:nomeExecutante/:enderecoExecutante/:faturar",
     doAgendamento
   );
   
@@ -1368,7 +1358,7 @@ function startServer() {
   
   // Gerar PDF de resposta
   app.get(
-    "/gerarConfirmacao/:cpf/:nome/:numeroCartao/:nomeCartao/:bandeira/:dataExame/:nomeExame/:nomeExecutante/:endereco" +
+    "/gerarConfirmacao/:cpf/:nome/:numeroCartao/:nomeCartao/:bandeira/:nomeExame/:nomeExecutante/:endereco" +
       "/:valor/:forma/:merchantOrderId/:proofOfSale/:paymentId/:url",
     doGerarConfirmacao
   );

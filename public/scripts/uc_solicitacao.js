@@ -31,7 +31,7 @@ export default class CtrlSolicitacao {
     if(this.view.usuarioLogado) {
       await this.daoPaciente.abrirDB();
       await this.obterPacientes();
-    }
+    } 
     this.view.atualizarInterface(
       this.usrApp.ehMedico,
       this.arrayPacientes,
@@ -136,7 +136,6 @@ export default class CtrlSolicitacao {
     nomePaciente,
     emailPaciente,
     codExame,
-    dataExame,
     numCartao,
     nomeCartao,
     bandeira,
@@ -255,8 +254,6 @@ export default class CtrlSolicitacao {
       "/" +
       endereco +
       "/" +
-      dataExame +
-      "/" +
       "S";
       //TODO faturar;
     console.log("(app.js) Executando agendamento");
@@ -276,7 +273,6 @@ export default class CtrlSolicitacao {
       this.view.colocarEspera();
       cpfPaciente = cpfPaciente.substring(0, 3) + "." + cpfPaciente.substring(3, 6) + "." + cpfPaciente.substring(6, 9) + "-" + cpfPaciente.substring(cpfPaciente.length-2);
       valor = valor.substring(0, valor.length - 2) + "," + valor.substring(valor.length - 2);
-      dataExame = dataExame.substring(dataExame.length - 2) + "-" + dataExame.substring(5,7) + "-" + dataExame.substring(0,4);  
       requisicao =
         "/gerarConfirmacao" +
         "/" +
@@ -289,8 +285,6 @@ export default class CtrlSolicitacao {
         nomeCartao +
         "/" +
         bandeira +
-        "/" +
-        dataExame +
         "/" +
         nomeExame +
         "/" +
@@ -320,7 +314,7 @@ export default class CtrlSolicitacao {
       
       var file = window.URL.createObjectURL(blob);
       
-      this.view.exibirConfirmacao(cpfPaciente, nomePaciente, dataExame, nomeExame, nomeExecutante, endereco, 
+      this.view.exibirConfirmacao(cpfPaciente, nomePaciente, nomeExame, nomeExecutante, endereco, 
                                   valor, "Cartão de Crédito", merchantOrderId, null);      
     } else {
       alert("Erro no agendamento\n" + JSON.stringify(resposta));
@@ -335,7 +329,6 @@ export default class CtrlSolicitacao {
     nomePaciente,
     emailPaciente,
     codExame,
-    dataExame,
     numCartao,
     nomeCartao,
     bandeira,
@@ -441,8 +434,6 @@ export default class CtrlSolicitacao {
       "/" +
       endereco +
       "/" +
-      dataExame +
-      "/" +
       "S";
     //faturar;
     console.log("(app.js) Executando agendamento");
@@ -510,8 +501,6 @@ export default class CtrlSolicitacao {
     let cpfPaciente = ses.agendamento.cpf.substring(0, 3) + "." + ses.agendamento.cpf.substring(3, 6) + "." + 
                       ses.agendamento.cpf.substring(6, 9) + "-" + ses.agendamento.cpf.substring(ses.agendamento.cpf.length-2);
     let valor = ses.pgto.valor.substring(0, ses.pgto.valor.length - 2) + "," + ses.pgto.valor.substring(ses.pgto.valor.length - 2);
-    let dataExame = ses.agendamento.dataExame.substring(ses.agendamento.dataExame.length - 2) + "-" + ses.agendamento.dataExame.substring(5,7) + 
-                "-" + ses.agendamento.dataExame.substring(0,4);  
     alert("Exame agendado com sucesso!\nAguarde download de confirmação.");
 
     let requisicao =
@@ -526,8 +515,6 @@ export default class CtrlSolicitacao {
         ses.pgto.nomeCartao +
         "/" +
         ses.pgto.bandeira +
-        "/" +
-        dataExame +
         "/" +
         ses.agendamento.nomeExame + //TODO
         "/" +
@@ -555,7 +542,7 @@ export default class CtrlSolicitacao {
       alert("Documento de confirmação " + nomeArq + " salvo na pasta de downloads");
       // alert("Redirecionando para autenticação");
             
-      this.view.exibirConfirmacao(cpfPaciente, ses.agendamento.nome, dataExame, "nomeExame", "nomeExecutante", "endereco", 
+      this.view.exibirConfirmacao(cpfPaciente, ses.agendamento.nome, "nomeExame", "nomeExecutante", "endereco", 
                                   valor, "Cartão de Débito", ses.pgto.merchantOrderId, null);      
 
       // window.history.go(-1);
@@ -569,7 +556,6 @@ async enviarAgendamentoPgtoBoleto(
     nomePaciente,
     emailPaciente,
     codExame,
-    dataExame,
     nomeExame,
     nomeExecutante,
     endereco,
@@ -600,9 +586,7 @@ async enviarAgendamentoPgtoBoleto(
       "/" +
       valor.replace(/\.|\,/g, "") +
       "/" +
-      nomeExame +
-      "/" +
-      dataExame;
+      nomeExame;
       
     let response = await fetch(requisicao, { credentials : "include" });
     let resposta = await response.json();
@@ -680,8 +664,6 @@ async enviarAgendamentoPgtoBoleto(
       "/" +
       endereco +
       "/" +
-      dataExame +
-      "/" +
       "S";
     //faturar;
     console.log("(app.js) Executando agendamento");
@@ -701,7 +683,6 @@ async enviarAgendamentoPgtoBoleto(
       this.view.colocarEspera();
       //TODO cpfPaciente = cpfPaciente.substring(0, 3) + "." + cpfPaciente.substring(3, 6) + "." + cpfPaciente.substring(6, 9) + "-" + cpfPaciente.substring(cpfPaciente.length-2);
       valor = valor.substring(0, valor.length - 2) + "," + valor.substring(valor.length - 2);
-      dataExame = dataExame.substring(dataExame.length - 2) + "-" + dataExame.substring(5,7) + "-" + dataExame.substring(0,4);  
 
       requisicao =
         "/gerarConfirmacao" +
@@ -715,8 +696,6 @@ async enviarAgendamentoPgtoBoleto(
         "BOLETO" +
         "/" +
         "BOLETO" +
-        "/" +
-        dataExame +
         "/" +
         nomeExame +
         "/" +
@@ -743,9 +722,8 @@ async enviarAgendamentoPgtoBoleto(
       this.view.tirarEspera();
       alert("Documento de confirmação '" + nomeArq + "'\nsalvo na pasta de downloads");
       
-      this.view.exibirConfirmacao(cpfPaciente, nomePaciente, dataExame, 
-                                  nomeExame, nomeExecutante, endereco, valor, "Boleto", 
-                                  merchantOrderId, url);
+      this.view.exibirConfirmacao(cpfPaciente, nomePaciente, nomeExame, nomeExecutante, 
+                                  endereco, valor, "Boleto", merchantOrderId, url);
 
       //window.history.go(-1);
     } else {
@@ -765,7 +743,8 @@ async enviarAgendamentoPgtoBoleto(
     history.go(-1);
   }
 
-  //-----------------------------------------------------------------------------------------//
+//-----------------------------------------------------------------------------------------//
+
 }
 
 var ucSolicitacao = new CtrlSolicitacao();
