@@ -1,0 +1,32 @@
+{
+  "name": "GuiaRosa",
+  "version": "1.0.0",
+  "description": "Guia Rosa app",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.16.4",
+    "express-http-to-https": "^1.1.4",
+    "cookie-parser": "1.4.0",
+    "node-fetch": "^2.3.0",
+    "soap": "^0.15.0",
+    "pdfkit": "^0.11.0"
+  },
+  "engines": {
+    "node": "8.x"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/guiarosaapp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/guiarosaapp/issues"
+  },
+  "keywords": [
+    "progressive web app",
+    "pwa",
+    "Guia Rosa"
+  ]
+}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guia Rosa App</title>
+    <meta name="guiarosaapp" content="Guia Rosa App" />
+    <link rel="stylesheet" type="text/css" href="/styles/inline.css" />
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Guia Rosa App" />
+    <link rel="apple-touch-icon" href="/images/icons/icon-152x152.png" />
+    <meta name="description" content="Guia Rosa App" />
+    <meta name="theme-color" content="#2F3BA2" />
+
+    <script src="scripts/jquery.js"></script>
+    <script src="scripts/jquery.maskedinput-1.4.1.pack.js"></script>
+    <script src="scripts/md5.min.js"></script>
+  </head>
+  <body>
+    <header class="header">
+      <h1>Guia Rosa App</h1>
+    </header>
+    <main class="main">
+      <div class="circle"></div>
+
+      <div id="divConteudo" class="apresentacao_app">
+        <b>Efetue seu Cadastro</b><br />
+      </div>
+
+      <div id="divLogin" class="caixaDialog" >
+        <div class="grade">
+          <div class="rotulo">CPF:</div>
+          <div>
+            <input id="tfCpf" type="text" />
+          </div>
+          <div class="rotulo">Nome:</div>
+          <div>
+            <input id="tfNome" type="text" />
+          </div>
+          <div class="rotulo">Celular:</div>
+          <div>
+            <input id="tfCelular" type="text" />
+          </div>
+          <div class="rotulo">Email:</div>
+          <div>
+            <input id="tfEmail" type="text" />
+          </div>
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 25% 72%;">
+            <div>Cep:</div>
+            <div style="margin-left:3%">Logradouro:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 25% 72%;">
+            <input id="tfCep" type="text" />
+            <input id="tfRua"  style="margin-left:3%" type="text" disabled/>
+          </div>
+
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 30% 67%">
+            <div>Número:</div>
+            <div style="margin-left:3%">Complemento:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns:30% 67%;">
+            <input id="tfNumero" type="text" />
+            <input id="tfComplemento" style="margin-left:3%" type="text" />
+          </div>
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 40% 37% 20%;">
+            <div>Bairro:</div>
+            <div style="margin-left:3%">Cidade:</div>
+            <div style="margin-left:10%">UF:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 40% 37% 20%">
+            <input id="tfBairro" type="text" disabled />
+            <input id="tfCidade" style="margin-left:3%" type="text" disabled/>
+            <input id="tfUf" style="margin-left:10%" type="text" disabled/>
+          </div>
+
+          
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 48% 48%">
+            <div>Senha:</div>
+            <div style="margin-left:3%">Repita a Senha:</div>
+          </div>
+          <div style="margin:0px;padding:0px;display:grid;grid-template-columns: 48% 48%">
+            <input id="tfSenha" type="password" />
+            <input id="tfReplay" style="margin-left:3%" type="password" />
+          </div>
+        </div>
+        <div class="caixaBotoes">
+          <div>
+            <button id="btCriar">
+              Criar Conta
+            </button>
+            <button id="btCancelar">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </div>
+      <div id="logo"></div>
+    </main>
+    <footer class="footer"></footer>
+    <script src="scripts/cadusuario.js"></script>
+    <script src="scripts/nav.js"></script>
+  </body>
+</html>

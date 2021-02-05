@@ -1,0 +1,5 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target" : { "namespace": "android_app", "package_name": "me.glitch.guia_rosa.twa",
+                   "sha256_cert_fingerprints": ["55:84:9F:5F:7E:9C:16:4B:BC:9D:D1:5F:C3:5E:34:36:24:F7:AA:D5:80:D4:FB:E9:B3:4C:ED:31:C2:04:96:DF"] }
+    }]
