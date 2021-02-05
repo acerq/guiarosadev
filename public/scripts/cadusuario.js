@@ -40,9 +40,24 @@ var complemento;
 var bairro;
 var cep;
 
+
+
 var funcaoMD5 = new Function("a", "return md5(a)");
 
 $(document).ready(function() {
+  
+  // Tratando evento voltar
+  if(tfCpf.value != null && tfCpf.value != "") {
+    let tamHistory = window.history.length;
+    if(tamHistory == 0)
+      window.location.href='index.html';
+    else
+      while (tamHistory > 0) {
+        window.history.go(-1);
+        tamHistory--;
+      }
+  }
+  
   tirarEspera();
   $("#tfCpf").mask("999.999.999-99");
   $("#tfCelular").mask("(99) 9999-9999?9");
@@ -407,3 +422,4 @@ tfReplay.addEventListener("keyup", function(event) {
     callbackCriar();
   }
 });
+

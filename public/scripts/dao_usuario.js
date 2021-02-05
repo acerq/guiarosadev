@@ -38,6 +38,8 @@ DaoUsuario.prototype.abrirDb = async function() {
 //-----------------------------------------------------------------------------------------//
 
 DaoUsuario.prototype.obterUsr = async function() {
+  if(this.db == null)
+    return null;
   let self = this;
   let resultado = await new Promise(function(resolve, reject) {
     try {

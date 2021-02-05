@@ -33,7 +33,7 @@ DaoConsulta.prototype.abrirDbConsulta = async function() {
 
 //-----------------------------------------------------------------------------------------//
 
-DaoConsulta.prototype.salvarConsulta = async function(codLocalSelecionado, arrayExames, tfExame, codExecutanteSelecionado, codExameSelecionado) {
+DaoConsulta.prototype.salvarConsulta = async function(codLocalSelecionado, arrayExames, tfExame, idDadosExame, codExecutanteSelecionado, codExameSelecionado) {
   let self = this;
   let resultado = await new Promise(async function(resolve, reject) {
     try {
@@ -44,6 +44,7 @@ DaoConsulta.prototype.salvarConsulta = async function(codLocalSelecionado, array
         codLocalSelecionado: codLocalSelecionado,
         arrayExames: arrayExames,
         tfExame: tfExame,
+        idDadosExame : idDadosExame,
         codExecutanteSelecionado: codExecutanteSelecionado,
         codExameSelecionado: codExameSelecionado
       });

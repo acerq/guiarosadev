@@ -3,6 +3,7 @@
 const SEPARADOR = "##";
 const funcaoMD5 = new Function("a", "return md5(a)");
 const novoDaoConsulta = new Function("", "return new DaoConsulta()");
+const novoDaoUsuario = new Function("", "return new DaoUsuario()");
 
 const fnTirarEspera = new Function("tirarEspera()");
 const fnColocarEspera = new Function("colocarEspera()");
@@ -61,7 +62,7 @@ export default class ViewSolicitacao {
     //----
 
     this.arrayExames = null;
-    this.codLocalSelecionado = null;
+    this.codLocalSelecionado = 0;
     this.codExecutanteSelecionado = null;
     this.codExameSelecionado = null;
     this.valorExameSelecionado = null;
@@ -70,6 +71,7 @@ export default class ViewSolicitacao {
     this.nomePaciente = null;
     this.cpfPaciente = null;
     this.dadosExame = null;
+    this.idDadosExame = null;
     this.formaPgto = null;
     
     $(document).on("keypress", "input", function(e) {
@@ -95,11 +97,13 @@ export default class ViewSolicitacao {
       await this.daoConsulta.abrirDbConsulta();
       let array = await this.daoConsulta.verificarConsultaArmazenada();
       if(array.length != 0) {
+        this.daoConsulta.limparConsulta();
         this.tfExame.value = array[0].tfExame;
+        this.idDadosExame = array[0].idDadosExame;
         this.codExecutanteSelecionado = array[0].codExecutanteSelecionado;
         this.codExameSelecionado = array[0].codExameSelecionado;
         this.atualizarExames(array[0].arrayExames);
-        //TODO codLocalSelecionado : self.codLocalSelecionado,
+        this.codLocalSelecionado = array[0].codLocalSelecionado;
       }      
       if (ehMedico) {
         let i;
@@ -128,8 +132,11 @@ export default class ViewSolicitacao {
       arrayLocais.forEach((value, index, array) => {
         var codigo = value.codigolocal;
         var descricao = value.nomelocal;
-        retorno += "<option value='" + codigo + "'>" + descricao + "</option>";
-        if (index === array.length - 1) resolve(retorno);
+        retorno += "<option value='" + codigo + "'" +           
+                    (this.codLocalSelecionado == codigo  ? "selected" : "") +  
+                   ">" + descricao + "</option>";
+        if (index === array.length - 1) 
+          resolve(retorno);
       });
     });
 
@@ -144,9 +151,8 @@ export default class ViewSolicitacao {
         templateSelection: this.formatarLocal
       })
       .on("select2:select", function(e) {
-        this.codLocalSelecionado = e.params.data.id;
+        self.codLocalSelecionado = e.params.data.id;
       });
-    this.codLocalSelecionado = 0;
   }
 
   //-----------------------------------------------------------------------------------------//
@@ -164,12 +170,13 @@ export default class ViewSolicitacao {
   //-----------------------------------------------------------------------------------------//
 
   async obterExames() {
-    fnColocarEspera();
-    if (self.codLocalSelecionado == null) {
-      alert("Não foi indicado o local para realização do exame.");
-    }
     self.tfExame.value = self.tfExame.value.toUpperCase();
     var strExame = self.tfExame.value;
+    if(strExame == null || strExame == ""){
+      alert("Digite o nome ou parte do nome do exame.");
+      return;
+    }
+    fnColocarEspera();
     await self.ctrl.obterExames(self.codLocalSelecionado, strExame);
     fnTirarEspera();
   }
@@ -226,9 +233,10 @@ export default class ViewSolicitacao {
 
   atualizarExames(arrayExames) {
     if (arrayExames == null || arrayExames.length == 0) {
-      alert(
-        "Nenhum exame encontrado\ncom os parâmetros informados.\nTente novamente."
-      );
+      alert("Nenhum exame encontrado\ncom os parâmetros informados.\nTente novamente.");
+      var divExame = document.getElementById("divExame"); 
+      divExame.innerHTML = "";
+      divExame.style = "";
       return;
     }
     this.arrayExames = arrayExames;
@@ -264,7 +272,7 @@ export default class ViewSolicitacao {
           SEPARADOR +
           valor +
           "' " +  
-          (this.codExecutanteSelecionado ==  codExecutante && this.codExameSelecionado == codExame ? "selected" : "") +
+          (this.codExecutanteSelecionado == codExecutante && this.codExameSelecionado == codExame ? "selected" : "") +
           ">" +
           descricao +
           "</option>";
@@ -353,7 +361,11 @@ export default class ViewSolicitacao {
     self.cpfPaciente = dadosPaciente[1].replace(/\.|-/g, "");
     self.emailPaciente = dadosPaciente[2];
 
-    let selecao = self.dadosExame.text.split(SEPARADOR);
+    let selecao;
+    if(self.dadosExame != null) 
+      selecao = self.dadosExame.text.split(SEPARADOR);
+    else
+      selecao = self.idDadosExame.split(SEPARADOR); // Foi obtido pela consulta armazenada
     let nomeExame = tiraEspacos(selecao[0]).replace(/\//g, " ");
     let nomeExecutante = tiraEspacos(selecao[1]).replace(/\//g, " ");
     let endereco = tiraEspacos(selecao[2]).replace(/\//g, " ");
@@ -403,7 +415,12 @@ export default class ViewSolicitacao {
       $("#tfMesValidade").mask("99");
       $("#tfAnoValidade").mask("9999");
 
-      let selecao = self.dadosExame.text.split(SEPARADOR);
+      let selecao;
+      if(self.dadosExame != null) 
+        selecao = self.dadosExame.text.split(SEPARADOR);
+      else
+        selecao = self.idDadosExame.split(SEPARADOR); // Foi obtido pela consulta armazenada
+      
       let msg =
         "<center><b>Exame Solicitado:</b><br/>" +
         "<span style='font-size: 10px;'><b>" +
@@ -612,9 +629,18 @@ apresentarPgtoDebito(cpfPaciente, nomePaciente, nomeExame, nomeExecutante, ender
       }
       await self.daoConsulta.limparConsulta();
       await self.daoConsulta.abrirDbConsulta();
-      await self.daoConsulta.salvarConsulta(self.codLocalSelecionado, self.arrayExames, self.tfExame.value, self.codExecutanteSelecionado, self.codExameSelecionado);
-      alert("Para emitir um voucher para este exame, precisamos solicitar seus dados para identificação.");
-      window.location.href = "cadusuario.html";
+      await self.daoConsulta.salvarConsulta(self.codLocalSelecionado, self.arrayExames, self.tfExame.value, self.dadosExame.text, self.codExecutanteSelecionado, self.codExameSelecionado);
+      
+      let daoUsuario = novoDaoUsuario();
+      await daoUsuario.abrirDb();
+      let usrApp = await daoUsuario.obterUsr();
+      if(usrApp == null) {
+        alert("Para emitir um voucher para este exame, precisamos solicitar seus dados para identificação.");      
+        window.location.href = "cadusuario.html";
+      } else {
+        alert("Faça seu login para emissão do voucher.");      
+        window.location.href = "login.html";
+      }
     }
   }
 
