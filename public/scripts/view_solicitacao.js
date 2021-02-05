@@ -2,6 +2,7 @@
 
 const SEPARADOR = "##";
 const funcaoMD5 = new Function("a", "return md5(a)");
+const novoDaoConsulta = new Function("", "return new DaoConsulta()");
 
 const fnTirarEspera = new Function("tirarEspera()");
 const fnColocarEspera = new Function("colocarEspera()");
@@ -21,6 +22,7 @@ export default class ViewSolicitacao {
 
     self = this;
 
+    this.daoConsulta = novoDaoConsulta();
     this.tfExame = document.getElementById("tfExame");
     this.cbPaciente = document.getElementById("cbPaciente");
     this.cbExame = document.getElementById("cbExame");
@@ -58,6 +60,7 @@ export default class ViewSolicitacao {
     this.btCancelar = null;
     //----
 
+    this.arrayExames = null;
     this.codLocalSelecionado = null;
     this.codExecutanteSelecionado = null;
     this.codExameSelecionado = null;
@@ -68,8 +71,6 @@ export default class ViewSolicitacao {
     this.cpfPaciente = null;
     this.dadosExame = null;
     this.formaPgto = null;
-
-    this.db = null; //TODO
     
     $(document).on("keypress", "input", function(e) {
       if (e.which == 13 && e.target == self.tfExame) {
@@ -90,6 +91,16 @@ export default class ViewSolicitacao {
   async atualizarInterface(ehMedico, arrayPacientes, arrayLocais) {
     //---- Formata a combobox de pacientes ----//
     if (this.usuarioLogado) {
+
+      await this.daoConsulta.abrirDbConsulta();
+      let array = await this.daoConsulta.verificarConsultaArmazenada();
+      if(array.length != 0) {
+        this.tfExame.value = array[0].tfExame;
+        this.codExecutanteSelecionado = array[0].codExecutanteSelecionado;
+        this.codExameSelecionado = array[0].codExameSelecionado;
+        this.atualizarExames(array[0].arrayExames);
+        //TODO codLocalSelecionado : self.codLocalSelecionado,
+      }      
       if (ehMedico) {
         let i;
         let tam = this.cbPaciente.options.length - 1;
@@ -220,6 +231,7 @@ export default class ViewSolicitacao {
       );
       return;
     }
+    this.arrayExames = arrayExames;
     new Promise((res, rej) => {
       arrayExames.sort(function(a, b) {
         let keyA = a.exame;
@@ -251,7 +263,9 @@ export default class ViewSolicitacao {
           codExame +
           SEPARADOR +
           valor +
-          "'>" +
+          "' " +  
+          (this.codExecutanteSelecionado ==  codExecutante && this.codExameSelecionado == codExame ? "selected" : "") +
+          ">" +
           descricao +
           "</option>";
         if (index === array.length - 1) res(retorno);
@@ -269,13 +283,13 @@ export default class ViewSolicitacao {
           templateResult: this.formatarItensDeExames,
           templateSelection: this.formatarSelecaoExame
         })
-        .on("select2:select", function(e) {
+        .on("select2:select", async function(e) {
           var selectionText = e.params.data.id.split(SEPARADOR);
           self.dadosExame = e.params.data;
           self.codExecutanteSelecionado = selectionText[0];
           self.codExameSelecionado = selectionText[1];
           self.valorExameSelecionado = selectionText[2];
-        });
+      });
 
       var element = document.querySelector(
         '[aria-labelledby="select2-cbExame-container"]'
@@ -583,21 +597,22 @@ apresentarPgtoDebito(cpfPaciente, nomePaciente, nomeExame, nomeExecutante, ender
   //-----------------------------------------------------------------------------------------//
 
   async voltarOuAgendar() {
-    if(this.view.usuarioLogado)
+    if(self.usuarioLogado)
       history.go(-1);
     else {
-      if (this.view.codExecutanteSelecionado == null) {
+      if (self.codExecutanteSelecionado == null) {
         fnTirarEspera();
         alert("O exame não foi escolhido.");
         return;
       }
-      if (this.view.codExameSelecionado == null) {
+      if (self.codExameSelecionado == null) {
         fnTirarEspera();
         alert("O exame não foi escolhido.");
         return;
       }
-      //this.view.abrirDBConsulta();
-      //this.view.salvarConsulta();
+      await self.daoConsulta.limparConsulta();
+      await self.daoConsulta.abrirDbConsulta();
+      await self.daoConsulta.salvarConsulta(self.codLocalSelecionado, self.arrayExames, self.tfExame.value, self.codExecutanteSelecionado, self.codExameSelecionado);
       alert("Para emitir um voucher para este exame, precisamos solicitar seus dados para identificação.");
       window.location.href = "cadusuario.html";
     }
@@ -613,56 +628,6 @@ apresentarPgtoDebito(cpfPaciente, nomePaciente, nomeExame, nomeExecutante, ender
 
   tirarEspera() {
     fnTirarEspera();
-  }
-
-  //-----------------------------------------------------------------------------------------//
-  
-  async abrirDBConsulta() {
-    this.db = await new Promise(function(resolve, reject) {
-      var requestDB = window.indexedDB.open("ConsultaUsr", 1); 
-      requestDB.onupgradeneeded = event => {
-        console.log("Criando IndexedDB Consulta");
-        let db = event.target.result;
-        let store = db.createObjectStore("Consulta", {
-          autoIncrement: true
-        });
-        store.createIndex("id", "id", { unique: true });
-      };
-
-      requestDB.onerror = event => {
-        alert("Erro [DBConsulta]: " + event.target.errorCode);
-        reject(Error("Error: " + event.target.errorCode));
-      };
-
-      requestDB.onsuccess = event => {
-        console.log("[DBConsulta] Sucesso");
-        if (event.target.result) resolve(event.target.result);
-        else reject(Error("object not found"));
-      };
-    });
-  }
-  
- //-----------------------------------------------------------------------------------------//
-  
-  async salvarConsulta() {
-    fnColocarEspera();
-
-    let db = this.db;
-    let resultado = await new Promise(function(resolve, reject) {
-      let transacao = db.transaction(["Consulta"], "readwrite");
-      transacao.oncomplete = event => {
-        console.log("[Consulta] Sucesso");
-        resolve("Ok");
-      };
-      let store = transacao.objectStore("Consulta");
-      store.add({
-          id: 1,
-          codLocalSelecionado : self.codLocalSelecionado,
-          tfExame : self.tfExame.value,
-          dadosExame : self.dadosExame.params.data
-      });
-    });      
-    return true;
   }
 
   //-----------------------------------------------------------------------------------------//

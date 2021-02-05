@@ -381,13 +381,12 @@ function doLoginMedico(req, resp) {
         usuariosAtivos.set(sessao.session_id, sessao);
         resp.cookie(SESSION_ID, sessao.session_id, { maxAge: TEMPO_MAXIMO_SESSAO + TEMPO_COOKIE_APOS_SESSAO_FINALIZADA, httpOnly: true });
 
-        console.log("doLogin ------------ ");
-        console.log("doLogin session_id: ", sessao.session_id);
-        console.log("doLogin Resposta ->", resp);
-        console.log("doLogin get  ", usuariosAtivos.get(sessao.session_id));
-        console.log("doLogin ------------ ");
-        console.log("doLogin ------------ ");
-        console.log("doLogin ------------ ");
+        console.log("doLoginMedico ------------ ");
+        console.log("doLoginMedico session_id: ", sessao.session_id);
+        console.log("doLoginMedico get  ", usuariosAtivos.get(sessao.session_id));
+        console.log("doLoginMedico ------------ ");
+        console.log("doLoginMedico ------------ ");
+        console.log("doLoginMedico ------------ ");
         
         resp.json(sessao);
       });

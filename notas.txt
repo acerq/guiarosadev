@@ -1,0 +1,182 @@
+Credenciais Marketplace
+ClientId/MerchantId: 85012692-b03b-437d-990c-1f0be4a2a377
+ClientSecret: fwMtZMpiCSnQ45aDSTQpjTb8/xcwO8UJQawRRKQEK1o=
+Taxas Braspag -> Marketplace
+Fee – R$ 0,23
+Anti fraude - R$ 0,49
+Visa débito – 1.90%
+Visa crédito à vista - 2.23%
+Visa 2 a 6 parcelas - 2.40%
+Visa 7 a 12 parcelas - 2.75%
+Master débito – 1.90%
+Master crédito à vista - 2.23%
+Master 2 a 6 parcelas - 2.40%
+Master 7 a 12 parcelas - 2.75%
+Subordinado01 MerchantId: bca6f2f1-a8c5-4d77-ac03-4e14af3f48f7
+Subordinado02 MerchantId: 7c210d4a-4365-44aa-b62d-9395e6f079cf
+
+
+2)Wsincluipaciente
+================
+
+{nome:"Mauro Bastos", cpf:"75855373467", senha : "5759494f25129de6d0bd71f41a582a8c", email:"teste@teste.com", telefone:"teste de telefone"} 
+
+SE (Senha == MD5("@MedicoNoApp@")) ENTÃO // (5759494f25129de6d0bd71f41a582a8c) --> É médico cadastrando o paciente
+	SE (Paciente não está na base) ENTÃO
+		INSERT Paciente
+	SENÃO
+		UPDATE email e telefone
+SENÃO // Paciente está se cadastrando em um Mobile
+	SE (Paciente não está na base) ENTÃO
+		INSERT Paciente
+	SENÃO
+		SE (Senha antiga  == MD5("@MedicoNoApp@")) ENTÃO  // Paciente estava na base, mas médico que o inseriu
+			UPDATE senha, email e telefone
+		SENÃO
+			SE (Senha antiga == senha) // O paciente já tinha se cadastrado e está colocando APP em outro aparelho
+				UPDATE email e telefone		
+			SENÃO
+				Erro: Senha não confere com a cadastrada!
+
+
+
+
+Gartner
+Lowcode
+RPA
+iPath
+
+
+
+
+sdkmanager sempre deve usar o --sdk_root
+
+baixar "build-tools;29.0.2"
+
+pwabuilder  -m public/manifest.json -p android,ios
+
+Fazer isto antes de rodar o cordova
+
+cordova platform remove ios
+cordova platform add ios@4.1.0
+
+C:\Users\aless\git\prjGuia\guiarosa\cordova\plugins\cordova-plugin-hostedwebapp\scripts\updateConfigurationBeforePrepare.js:1
+Tirar #!/usr/bin/env node
+Invalid or unexpected token
+
+
+
+cordova build android
+
+
+cordova build --release android
+keytool -genkey -v -keystore nome-da-sua-keystore.keystore -alias  nome-do-seu-alias -keyalg RSA -keysize 2048 -validity 10000
+
+
+arcwelder para rodas apk no chrome do windows
+
+-----
+
+Install Nodeclipse from eclipse marketplace http://www.nodeclipse.org/
+Create a new node.js express project, File -> New Node.Js Express Project
+Open the package.json file
+Add my npm package to the package.json as a dependency (copy the format for the express dependency)
+Save the package.json (seems obvious but it got me when testing!)
+Right click the package.json, Run As -> NPM Install
+Right click the eclipse project folder, Refresh
+Open node_modules... BOOM! You will see your new module installed in eclipse
+
+------
+
+
+
+colors.xml transparent #00ff0000
+
+
+guia-rosa-alias
+GuiaRosa Admin
+Mathic
+7cZq7Jiwfg3sLE3
+
+
+
+
+Se o login do médico estiver errado
+
+	O agendamento pode ser feito para qualquer dia, inclusive sábado e domingo? Sábado ok, domingo e feriado não. 
+
+Há locais sem endereço
+Código do cliente de cada local para o MarketPlace
+Tirar o CPF do ID
+
+sessao.email = "";
+      sessao.celular = "";
+      sessao.rua = "";
+      sessao.numero = "";
+      sessao.complemento = "";
+      sessao.bairro = "";
+      sessao.cep = "";
+
+Por causa do cartão, o ws precisa incluir e retornar isto.
+
+
+function doObterPeriodo(req, resp) {
+  let soap = require("soap");
+  console.log("executando doObterPeriodo ");
+
+  soap.createClient(BASE_URL, function(err, client) {
+    console.log("createClient");
+    client.Wsretornaperiodo(null, function(err, result1) {
+      console.log("WSretornaperiodo webservice");
+      if (err) {
+        console.log("WSretornaperiodo Err -> ", err.response.body);
+        resp.json(JSON.parse('{"erro" : null}'));
+        return;
+      }
+      let resposta = JSON.parse(result1.WsretornaperiodoReturn.$value);
+      console.log("doObterPeriodo Resposta -> " + JSON.stringify(resposta));
+      resp.json(resposta);
+    });
+  });
+}
+
+//-----------------------------------------------------------------------------------------//
+  console.log("+------------------------- ");
+  console.log("| doObterLocais ");
+  console.log("+------------------------- ");
+
+  let soap = require("soap");
+
+  soap.createClient(BASE_URL, function(err, client) {
+    console.log("createClient");
+    client.Wsretornalocais(null, function(err, result1) {
+      console.log("WSretornalocais webservice");
+      if (err) {
+        console.log("WSretornalocais Err -> ", err.response.body);
+        resp.json(JSON.parse('{"erro" : null}'));
+        return;
+      }
+      let resposta = JSON.parse(result1.WsretornalocaisReturn.$value);
+      let arrayLocais = resposta.locais;
+      console.log("doObterLocais Resposta ->", JSON.stringify(arrayLocais));
+      resp.json(arrayLocais);
+    });
+  });
+
+
+
+
+
+
+
+Pgto de Boleto p três dias
+Validade do Voucher...
+MerchartID do executante (como fazer)
+Pagamento no Local
+
+
+
+CPF não tem identificador no voucher --> não terá solicitante
+
+Pgto confirmado ou não (ws no início, pgto, ws no fim)
+
