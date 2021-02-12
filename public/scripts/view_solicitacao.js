@@ -37,8 +37,10 @@ export default class ViewSolicitacao {
 
     this.divResposta = document.getElementById("divResposta");
 
-    this.btVoltarOuAgendar.onclick = this.voltarOuAgendar;
-    this.btVoltarOuAgendar.view = this;
+    if(this.btVoltarOuAgendar != null) {
+      this.btVoltarOuAgendar.onclick = this.voltarOuAgendar;
+      this.btVoltarOuAgendar.view = this;
+    }
     this.btConsultar.onclick = this.obterExames;
 
     if (this.btPacientes != null) {
@@ -47,7 +49,8 @@ export default class ViewSolicitacao {
       this.btVoltarOuAgendar.innerHTML = "Voltar";
     } else { 
       this.usuarioLogado = false;
-      this.btVoltarOuAgendar.innerHTML = "Gerar Voucher";
+      if(this.btVoltarOuAgendar != null)
+        this.btVoltarOuAgendar.innerHTML = "Gerar Voucher";
     }
 
     //---- Elementos da página de pagamento

@@ -275,7 +275,7 @@ function tirarEspera() {
 
 function exigirLogin() {
   let url = document.URL;
-  if(url.charAt(url.length - 1) == '/' || url.includes("cadusuario.html") || url.includes("login.html"))
+  if(url.charAt(url.length - 1) == '/' || url.includes("cadusuario.html") || url.includes("login.html") || url.includes("consulta.html"))
     return false;
   return true;
 }

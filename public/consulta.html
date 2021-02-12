@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Guia Rosa App</title>
+    <meta name="guiarosaapp" content="Guia Rosa App" />
+    <link rel="stylesheet" type="text/css" href="/styles/inline.css" />
+    <link rel="stylesheet" type="text/css" href="/styles/select2.css" />
+    <link rel="icon" href="/images/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <meta name="apple-mobile-web-app-title" content="Guia Rosa App" />
+    <link rel="apple-touch-icon" href="/images/icons/icon-152x152.png" />
+    <meta name="description" content="Guia Rosa App" />
+    <meta name="theme-color" content="#2F3BA2" />
+    <script src="scripts/jquery.js"></script>
+  </head>
+  <body>
+    <header id="hdr" class="header">Guia Rosa App</header>
+    <main class="main">
+      <div class="circle"></div>
+      <div id="divInstrucao" class="apresentacao_app">
+        <b>Procure Locais para Exame</b>
+      </div>
+      <div id="divConteudo" class="caixaDialog">
+        <div class="grade">
+          <div class="rotulo">
+            Local:
+          </div>
+          <div id="divLocal"></div>
+          <div class="rotulo">Exame:</div>
+          <div id="divTfExame">
+            <input
+              id="tfExame"
+              style="width:75%"
+              type="text"
+              size="20"
+              placeholder="Digite parte do nome do exame"
+            />&nbsp;
+            <button id="btConsultar" style="height:20px">
+              Consultar
+            </button>
+          </div>
+          <div class="rotulo"></div>
+          <div id="divExame"></div>
+        </div>
+        <div id="logo"></div>
+      </div>
+    </main>
+    <footer class="footer"></footer>
+    <script src="scripts/nav.js"></script>
+    <script>
+      abrirApp();
+    </script>
+    <script src="scripts/dao_consulta.js"></script>
+    <script src="scripts/dao_usuario.js"></script>
+    <script type="module" src="scripts/uc_solicitacao.js"></script>
+    <script src="scripts/md5.min.js"></script>
+    <script src="scripts/select2.js"></script>
+    <script src="scripts/download.js"></script>
+  </body>
+</html>
